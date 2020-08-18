@@ -1,10 +1,5 @@
-import { assert } from 'devAssert';
-import { frame } from 'frame';
-
-interface GameEvent {
-  frame: number;
-  run: () => void;
-}
+import { globalFrame } from 'frame';
+import { GameEvent, GameEventOptions } from 'gameEvent';
 
 const events: GameEvent[] = [];
 
@@ -12,22 +7,24 @@ export function eventQueueIsEmpty(): boolean {
   return events.length === 0;
 }
 
-export function eventQueuePush(event: GameEvent): void {
-  assert(event.frame > frame, "Don't push an event into the past");
-  events.push(event);
-  events.sort(compareByFrame);
+export function eventQueuePush(eventOptions: GameEventOptions): void {
+  events.push(new GameEvent(eventOptions));
 }
 
-export function eventQueuePeek(): GameEvent {
-  assert(!eventQueueIsEmpty(), "Don't peek at an empty queue");
-  return events[0];
-}
-
-export function eventQueuePop(): GameEvent {
-  assert(!eventQueueIsEmpty(), "Don't pop from an empty queue");
-  return events.shift()!;
-}
-
-function compareByFrame(eventA: GameEvent, eventB: GameEvent): number {
-  return eventA.frame - eventB.frame;
+export function eventQueueRun(): void {
+  const indicesToRemove: number[] = [];
+  events.forEach((event, index) => {
+    if (event.lastFrame < globalFrame) {
+      event.cleanup(globalFrame - event.frame, event.duration());
+      indicesToRemove.push(index);
+      return;
+    }
+    if (event.frame > globalFrame) {
+      return;
+    }
+    event.run(globalFrame - event.frame, event.duration());
+  });
+  indicesToRemove.reverse().forEach((index) => {
+    events.splice(index, 1);
+  });
 }

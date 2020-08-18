@@ -7,6 +7,7 @@
   "private": true,
   "devDependencies": {
     "@babel/core": "7.11.1",
+    "@babel/plugin-proposal-optional-chaining": "7.11.0",
     "@babel/preset-typescript": "7.10.4",
     "@rollup/plugin-babel": "5.2.0",
     "@rollup/plugin-json": "4.1.0",

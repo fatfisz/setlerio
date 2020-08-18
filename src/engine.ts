@@ -1,5 +1,6 @@
-import { eventQueueIsEmpty, eventQueuePeek, eventQueuePop, eventQueuePush } from 'eventQueue';
-import { frame, getNextFrame } from 'frame';
+import { addBlinker } from 'blinker';
+import { eventQueueRun } from 'eventQueue';
+import { globalFrame } from 'frame';
 import { updateGui, useGui } from 'gui';
 
 const state = {
@@ -12,29 +13,14 @@ export function engineInit(): void {
     gui.add(state, 'frame');
   });
 
-  addButton();
+  addBlinker(1000, 'salmon');
+  addBlinker(2000, 'moccasin');
+  addBlinker(3000, 'lightgreen');
+  addBlinker(4000, 'lightblue');
 }
 
 export function engineTick(): void {
-  state.frame = frame;
-
-  while (!eventQueueIsEmpty() && eventQueuePeek().frame <= frame) {
-    eventQueuePop().run();
-  }
-
+  state.frame = globalFrame;
+  eventQueueRun();
   updateGui();
-}
-
-function addButton(): void {
-  const button = document.createElement('button');
-  button.textContent = 'Hello';
-  button.addEventListener('click', () => {
-    eventQueuePush({
-      frame: getNextFrame(500),
-      run: () => {
-        document.body.append(document.createElement('br'), 'Hello');
-      },
-    });
-  });
-  document.body.append(button);
 }
