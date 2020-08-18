@@ -7,7 +7,7 @@ export function addBlinker(duration: number, color: string): void {
   button.addEventListener('click', () => {
     eventQueuePush({
       frame: getNextFrame(),
-      lastFrame: getNextFrame(duration),
+      duration,
       run: (currentFrame, totalFrames) => {
         if (currentFrame === totalFrames || currentFrame % 4 > 2) {
           button.style.backgroundColor = '';

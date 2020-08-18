@@ -10,14 +10,15 @@ export function eventQueuePush(eventOptions: GameEventOptions): void {
 export function eventQueueRun(): void {
   const indicesToRemove: number[] = [];
   events.forEach((event, index) => {
-    if (event.lastFrame < globalFrame) {
+    const currentFrame = globalFrame - event.frame;
+    if (currentFrame > event.totalFrames) {
       indicesToRemove.push(index);
       return;
     }
-    if (event.frame > globalFrame) {
+    if (currentFrame < 0) {
       return;
     }
-    event.run(globalFrame - event.frame, event.duration());
+    event.run(currentFrame, event.totalFrames);
   });
   indicesToRemove.reverse().forEach((index) => {
     events.splice(index, 1);

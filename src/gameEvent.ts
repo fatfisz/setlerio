@@ -1,29 +1,25 @@
 import { assert } from 'devAssert';
-import { globalFrame } from 'frame';
+import { getNumberOfFrames, globalFrame } from 'frame';
 
 type Run = (currentFrame: number, totalFrames: number) => void;
 
 export interface GameEventOptions {
   frame: number;
-  lastFrame?: number;
+  duration?: number;
   run: Run;
 }
 
 export class GameEvent {
   frame: number;
-  lastFrame: number;
+  totalFrames: number;
   run: Run;
 
-  constructor({ frame, lastFrame = frame, run }: GameEventOptions) {
+  constructor({ frame, duration = 0, run }: GameEventOptions) {
     assert(frame > globalFrame, "Don't push an event into the past");
-    assert(lastFrame >= frame, 'The event has to last at least for one frame');
+    assert(duration >= 0, 'The event has to last at least for one frame');
 
     this.frame = frame;
-    this.lastFrame = lastFrame;
+    this.totalFrames = getNumberOfFrames(duration);
     this.run = run;
-  }
-
-  duration(): number {
-    return this.lastFrame - this.frame;
   }
 }
