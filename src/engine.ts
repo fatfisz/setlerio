@@ -1,27 +1,28 @@
-import { addBlinker } from 'blinker';
+import { addBuildingButton } from 'buildings';
 import { eventQueueRun } from 'eventQueue';
-import { globalFrame } from 'frame';
-import { updateGui, useGui } from 'gui';
-
-const state = {
-  frame: 0,
-};
+import { updateGui } from 'gui';
+import { resourcesInit } from 'resources';
 
 export function engineInit(): void {
-  useGui((gui) => {
-    gui.open();
-    gui.add(state, 'frame');
-  });
+  if (process.env.NODE_ENV !== 'production') {
+    const style = document.createElement('style');
+    style.textContent = `
+      pre {
+        background: #fafafa;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 16px;
+      }
+    `;
+    document.head.append(style);
+  }
 
-  addBlinker(0, 'hotpink');
-  addBlinker(1000, 'salmon');
-  addBlinker(2000, 'moccasin');
-  addBlinker(3000, 'lightgreen');
-  addBlinker(4000, 'lightblue');
+  resourcesInit();
+  addBuildingButton('lumberjackHut');
+  addBuildingButton('tower');
 }
 
 export function engineTick(): void {
-  state.frame = globalFrame;
   eventQueueRun();
   updateGui();
 }
