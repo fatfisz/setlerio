@@ -13,6 +13,7 @@ export function engineInit(): void {
     gui.add(state, 'frame');
   });
 
+  addBlinker(0, 'hotpink');
   addBlinker(1000, 'salmon');
   addBlinker(2000, 'moccasin');
   addBlinker(3000, 'lightgreen');

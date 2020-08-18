@@ -15,7 +15,6 @@ export function eventQueueRun(): void {
   const indicesToRemove: number[] = [];
   events.forEach((event, index) => {
     if (event.lastFrame < globalFrame) {
-      event.cleanup(globalFrame - event.frame, event.duration());
       indicesToRemove.push(index);
       return;
     }
