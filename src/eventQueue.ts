@@ -3,10 +3,6 @@ import { GameEvent, GameEventOptions } from 'gameEvent';
 
 const events: GameEvent[] = [];
 
-export function eventQueueIsEmpty(): boolean {
-  return events.length === 0;
-}
-
 export function eventQueuePush(eventOptions: GameEventOptions): void {
   events.push(new GameEvent(eventOptions));
 }
