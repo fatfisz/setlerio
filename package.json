@@ -34,7 +34,7 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "lint": "eslint --ext .js,.ts --max-warnings 0 .",
+    "lint": "eslint --ext .js,.ts .",
     "lint:fix": "yarn lint --fix",
     "prebuild": "yarn lint && yarn types",
     "start": "webpack-dev-server",
