@@ -16,11 +16,11 @@ const resources: Record<ResourceName, number> = {
 export function resourcesInit(): void {
   useGui((gui) => {
     gui.open();
-    gui.add(resources, 'food');
-    gui.add(resources, 'wood');
-    gui.add(resources, 'stone');
-    gui.add(resources, 'iron');
-    gui.add(resources, 'gold');
+    gui.add(resources, 'food', 0, undefined, 1);
+    gui.add(resources, 'wood', 0, undefined, 1);
+    gui.add(resources, 'stone', 0, undefined, 1);
+    gui.add(resources, 'iron', 0, undefined, 1);
+    gui.add(resources, 'gold', 0, undefined, 1);
   });
 }
 
