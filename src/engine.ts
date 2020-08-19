@@ -1,4 +1,5 @@
 import { addBuildingButton } from 'buildings';
+import { displayInit, displayDraw } from 'display';
 import { eventQueueRun } from 'eventQueue';
 import { updateGui } from 'gui';
 import { resourcesInit } from 'resources';
@@ -18,11 +19,13 @@ export function engineInit(): void {
   }
 
   resourcesInit();
+  displayInit();
   addBuildingButton('lumberjackHut');
   addBuildingButton('tower');
 }
 
 export function engineTick(): void {
   eventQueueRun();
+  displayDraw();
   updateGui();
 }
