@@ -2,5 +2,5 @@
 
 module.exports = {
   presets: ['@babel/preset-typescript'],
-  plugins: ['@babel/plugin-proposal-optional-chaining'],
+  plugins: ['@babel/plugin-proposal-optional-chaining', 'babel-plugin-preval'],
 };
