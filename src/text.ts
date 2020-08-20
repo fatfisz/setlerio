@@ -7,7 +7,7 @@ const letters = preval.require<Record<string, number>>('./letters.js');
 
 const letterHeight = 6;
 const letterSpacing = 1;
-const lineSpacing = 4;
+const lineSpacing = 3;
 
 export function getTextImage(text: string, color: ColorChannels): HTMLCanvasElement {
   return useImageCache(['text', text, color], () => {
