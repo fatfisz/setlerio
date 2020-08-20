@@ -107,12 +107,8 @@ const letters: Record<string, number> = {
   '-': 4144,
 };
 
-export function getTextImage(
-  text: string,
-  color: ColorChannels,
-  maxWidth = Infinity,
-): HTMLCanvasElement {
-  return useImageCache(['text', text, color, maxWidth], () => {
+export function getTextImage(text: string, color: ColorChannels): HTMLCanvasElement {
+  return useImageCache(['text', text, color], () => {
     if (process.env.NODE_ENV !== 'production') {
       for (const letter of text) {
         assert(
@@ -121,13 +117,13 @@ export function getTextImage(
         );
       }
     }
-    const [fittingText, width, height] = getFittingText(text, maxWidth);
+    const [width, height] = getTextSize(text);
     const [canvas, context] = getCanvas(width, height);
     const imageData = context.createImageData(width, height);
     let y = 0;
     let offset = 0;
 
-    for (const char of fittingText) {
+    for (const char of text) {
       if (char === '\n') {
         y += letterHeight + lineSpacing;
         offset = 0;
@@ -141,32 +137,6 @@ export function getTextImage(
   });
 }
 
-function getFittingText(text: string, width: number): [string, number, number] {
-  const lines = text.split('\n');
-  const fittingLines = [];
-
-  for (const line of lines) {
-    const [first, ...rest] = line.split(' ');
-    let currentLine = first;
-    for (const word of rest) {
-      const newCurrentLine = `${currentLine} ${word}`;
-      if (getWidth(newCurrentLine) <= width) {
-        currentLine = newCurrentLine;
-      } else {
-        fittingLines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    fittingLines.push(currentLine);
-  }
-
-  return [
-    fittingLines.join('\n'),
-    Math.max(...fittingLines.map(getWidth)),
-    fittingLines.length * (letterHeight + lineSpacing) - lineSpacing,
-  ];
-}
-
 function drawLetter(
   imageData: ImageData,
   color: ColorChannels,
@@ -177,22 +147,27 @@ function drawLetter(
   const pixels = letters[char];
   const letterWidth = getLetterWidth(pixels);
 
-  for (let index = 0, y = 0; y < letterHeight; y += 1) {
-    for (let x = 0; x < letterWidth; x += 1, index += 1) {
-      if (pixels & (1 << index)) {
-        putColor(imageData.data, ((letterY + y) * imageData.width + letterX + x) * 4, color);
-      }
+  for (let index = 0; index < 32; index += 1) {
+    if (pixels & (1 << index)) {
+      const x = letterX + (index % letterWidth);
+      const y = letterY + Math.floor(index / letterWidth);
+      putColor(imageData.data, (y * imageData.width + x) * 4, color);
     }
   }
 }
 
-function getWidth(text: string): number {
-  if (text === '') {
-    return 0;
-  }
-  return [...text].reduce(
+function getTextSize(text: string): [number, number] {
+  const lines = text.split('\n');
+  return [
+    Math.max(...lines.map(getLineWidth)),
+    lines.length * (letterHeight + lineSpacing) - lineSpacing,
+  ];
+}
+
+function getLineWidth(line: string): number {
+  return [...line].reduce(
     (width, char) => width + getLetterWidth(letters[char]),
-    (text.length - 1) * letterSpacing,
+    Math.max(line.length - 1, 0) * letterSpacing,
   );
 }
 
