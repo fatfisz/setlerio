@@ -49,7 +49,7 @@ function drawLetter(
   const pixels = letters[char];
   const letterWidth = getLetterWidth(pixels);
 
-  for (let index = 0; index < 32; index += 1) {
+  for (let index = 0; index < letterWidth * letterHeight; index += 1) {
     if (pixels & (1 << index)) {
       const x = letterX + (index % letterWidth);
       const y = letterY + Math.floor(index / letterWidth);
