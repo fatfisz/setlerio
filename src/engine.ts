@@ -14,6 +14,10 @@ export function engineInit(): void {
         border-radius: 4px;
         padding: 16px;
       }
+
+      canvas {
+        outline: 3px solid black;
+      }
     `;
     document.head.append(style);
   }
