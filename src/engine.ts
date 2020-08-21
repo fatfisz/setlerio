@@ -18,6 +18,10 @@ export function engineInit(): void {
       canvas {
         outline: 3px solid black;
       }
+
+      .dg.ac {
+        z-index: 1 !important;
+      }
     `;
     document.head.append(style);
   }
