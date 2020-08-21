@@ -127,7 +127,6 @@ function drawHex(hex: Point<true>): void {
       .addCoords(-text.width * 1.5, -text.height * 1.5)
       .round()
       .toArray(),
-    // @ts-ignore
     text.width * 3,
     text.height * 3,
   );

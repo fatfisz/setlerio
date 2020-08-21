@@ -1,8 +1,8 @@
 import { hexBaseWidth, hexHeight, hexWidth } from 'hex';
 
 export class Point<Hex extends boolean> {
-  readonly x: number;
-  readonly y: number;
+  readonly x;
+  readonly y;
   // An unused flag to trick TS into checking the kind of points
   private readonly hex!: Hex;
 
