@@ -1,25 +1,34 @@
-import { Requirements, getMissingResourceInfo, deduceResources } from 'resources';
+import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { getNextFrame } from 'frame';
+import { neighborOffsets, Point } from 'hex';
+import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
 
-type BuildingName = 'townCenter' | 'lumberjackHut' | 'tower';
+type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
 
-const buildings: Record<
+interface BuildingInfo {
+  name: BuildingName;
+  hex: Point<true>;
+  drawableHandle: number;
+}
+
+const buildingDefs: Readonly<Record<
   BuildingName,
   {
     name: string;
-    count: number;
     requirements: Requirements;
   }
-> = {
+>> = {
+  blank: {
+    name: '-',
+    requirements: [],
+  },
   townCenter: {
     name: 'town center',
-    count: 1,
     requirements: [],
   },
   lumberjackHut: {
     name: "lumberjack's hut",
-    count: 0,
     requirements: [
       ['wood', 2],
       ['stone', 2],
@@ -27,7 +36,6 @@ const buildings: Record<
   },
   tower: {
     name: 'tower',
-    count: 0,
     requirements: [
       ['wood', 2],
       ['stone', 3],
@@ -35,9 +43,41 @@ const buildings: Record<
   },
 };
 
+const buildings = new Map<string, BuildingInfo>();
+
+export function buildingsInit(): void {
+  buildings.clear();
+  addAreaExpandingBuilding('townCenter', new Point(0, 0));
+}
+
+function addAreaExpandingBuilding(name: 'townCenter' | 'tower', hex: Point<true>): void {
+  setBuilding(hex, name, true);
+  neighborOffsets.forEach((neighborHex) => {
+    setBuilding(hex.add(neighborHex), 'blank', false);
+  });
+}
+
+function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): void {
+  const hash = hex.toHash();
+  if (buildings.has(hash)) {
+    if (!overwrite) {
+      return;
+    }
+    drawableRemove(buildings.get(hash)!.drawableHandle);
+  }
+  buildings.set(hash, {
+    name,
+    hex,
+    drawableHandle: drawablePush('drawHex', {
+      name: buildingDefs[name].name,
+      hex,
+    }),
+  });
+}
+
 export function addBuildingButton(name: BuildingName): void {
   const button = document.createElement('button');
-  button.textContent = `Build ${buildings[name].name}`;
+  button.textContent = `Build ${buildingDefs[name].name}`;
   button.addEventListener('click', () => {
     build(name);
   });
@@ -45,7 +85,7 @@ export function addBuildingButton(name: BuildingName): void {
 }
 
 function build(name: BuildingName): void {
-  const building = buildings[name];
+  const building = buildingDefs[name];
   const missingResourceInfo = getMissingResourceInfo(building.requirements);
 
   if (missingResourceInfo.length > 0) {
@@ -60,6 +100,5 @@ function build(name: BuildingName): void {
     });
   } else {
     deduceResources(building.requirements);
-    building.count += 1;
   }
 }

@@ -1,4 +1,4 @@
-import { addBuildingButton } from 'buildings';
+import { addBuildingButton, buildingsInit } from 'buildings';
 import { displayInit, displayDraw } from 'display';
 import { eventQueueRun } from 'eventQueue';
 import { updateGui } from 'gui';
@@ -28,6 +28,7 @@ export function engineInit(): void {
 
   resourcesInit();
   displayInit();
+  buildingsInit();
   addBuildingButton('lumberjackHut');
   addBuildingButton('tower');
 }
