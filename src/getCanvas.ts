@@ -5,7 +5,7 @@ export function getCanvas(
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+  const context = canvas.getContext('2d')!;
   context.imageSmoothingEnabled = false;
   return [canvas, context];
 }
