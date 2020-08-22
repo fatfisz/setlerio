@@ -1,5 +1,5 @@
 import { addBuildingButton, buildingsInit } from 'buildings';
-import { displayInit, displayDraw } from 'display';
+import { displayDraw, displayInit } from 'display';
 import { eventQueueRun } from 'eventQueue';
 import { updateGui } from 'gui';
 import { resourcesInit } from 'resources';
