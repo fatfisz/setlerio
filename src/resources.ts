@@ -6,11 +6,11 @@ type ResourceName = 'food' | 'wood' | 'stone' | 'iron' | 'gold';
 export type Requirements = [ResourceName, number][];
 
 const resources: Record<ResourceName, number> = {
-  food: 0,
-  wood: 2,
-  stone: 10,
-  iron: 0,
-  gold: 0,
+  food: Infinity,
+  wood: Infinity,
+  stone: Infinity,
+  iron: Infinity,
+  gold: Infinity,
 };
 
 export function resourcesInit(): void {
