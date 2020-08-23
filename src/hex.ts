@@ -1,3 +1,9 @@
+export const hexWidth = 160;
+
+export const hexHeight = hexWidth * 0.75;
+
+export const hexBaseWidth = hexWidth * 0.5;
+
 export class Point<Hex extends boolean> {
   readonly x;
   readonly y;
@@ -52,11 +58,14 @@ export class Point<Hex extends boolean> {
   }
 }
 
-export const hexWidth = 160;
-
-export const hexHeight = hexWidth * 0.7;
-
-export const hexBaseWidth = hexWidth * 0.5;
+export const hexVertices = [
+  new Point<false>(-hexBaseWidth / 2, -hexHeight / 2),
+  new Point<false>(hexBaseWidth / 2, -hexHeight / 2),
+  new Point<false>(hexWidth / 2, 0),
+  new Point<false>(hexBaseWidth / 2, hexHeight / 2),
+  new Point<false>(-hexBaseWidth / 2, hexHeight / 2),
+  new Point<false>(-hexWidth / 2, 0),
+];
 
 export const neighborOffsets = [
   new Point<true>(0, -1),

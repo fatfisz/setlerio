@@ -1,8 +1,9 @@
 import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { getNextFrame } from 'frame';
-import { neighborOffsets, Point } from 'hex';
+import { hexVertices, neighborOffsets, Point } from 'hex';
 import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
+import { getTextImage } from 'text';
 
 type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
 
@@ -68,10 +69,12 @@ function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): 
   buildings.set(hash, {
     name,
     hex,
-    drawableHandle: drawablePush('drawHex', {
-      name: buildingDefs[name].name,
-      hex,
-    }),
+    drawableHandle: drawablePush(
+      drawHex({
+        name: buildingDefs[name].name,
+        hex,
+      }),
+    ),
   });
 }
 
@@ -101,4 +104,44 @@ function build(name: BuildingName): void {
   } else {
     deduceResources(building.requirements);
   }
+}
+
+function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
+  return (
+    context: CanvasRenderingContext2D,
+    camera: Point<false>,
+    mouse: Point<false>,
+    hoveredHex: Point<true>,
+    hover: boolean,
+  ): void => {
+    context.lineJoin = 'round';
+    context.lineWidth = 3;
+    context.strokeStyle = 'black';
+    context.fillStyle = 'hotpink';
+
+    const relativeMid = hex.toCanvas().add(camera);
+
+    context.beginPath();
+    const [firstHex, ...restHexes] = hexVertices;
+    context.moveTo(...relativeMid.add(firstHex).round().toArray());
+    for (const restHex of restHexes) {
+      context.lineTo(...relativeMid.add(restHex).round().toArray());
+    }
+    context.closePath();
+    if (hover && hex.equal(hoveredHex)) {
+      context.fill();
+    }
+    context.stroke();
+
+    const text = getTextImage(`[${hex.x}, ${hex.y}]\n${name}`, [0, 0, 0]);
+    context.drawImage(
+      text,
+      ...relativeMid
+        .addCoords(-text.width * 1.5, -text.height * 1.5)
+        .round()
+        .toArray(),
+      text.width * 3,
+      text.height * 3,
+    );
+  };
 }
