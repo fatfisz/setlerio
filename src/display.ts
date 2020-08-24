@@ -85,7 +85,7 @@ function updateHex(): void {
   neighborOffsets.forEach((neighborHex) => {
     const absoluteNeighbor = absoluteProbableMid.add(neighborHex.toCanvas());
     if (isInHex(absoluteMouse.sub(absoluteNeighbor))) {
-      hoveredHex = absoluteNeighbor.toHex().round();
+      hoveredHex = absoluteNeighbor.toHex();
     }
   });
 }

@@ -130,9 +130,9 @@ function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point<true> }) {
 
     context.beginPath();
     const [firstHex, ...restHexes] = hexVertices;
-    context.moveTo(...relativeMid.add(firstHex).round().toArray());
+    context.moveTo(...relativeMid.add(firstHex).toArray());
     for (const restHex of restHexes) {
-      context.lineTo(...relativeMid.add(restHex).round().toArray());
+      context.lineTo(...relativeMid.add(restHex).toArray());
     }
     context.closePath();
     context.fill();

@@ -123,9 +123,9 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
 
     context.beginPath();
     const [firstHex, ...restHexes] = hexVertices;
-    context.moveTo(...relativeMid.add(firstHex).round().toArray());
+    context.moveTo(...relativeMid.add(firstHex).toArray());
     for (const restHex of restHexes) {
-      context.lineTo(...relativeMid.add(restHex).round().toArray());
+      context.lineTo(...relativeMid.add(restHex).toArray());
     }
     context.closePath();
     if (hover && hex.equal(hoveredHex)) {
