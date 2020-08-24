@@ -1,3 +1,5 @@
+import { assert } from 'devAssert';
+
 export const hexWidth = 160;
 
 export const hexHeight = hexWidth * 0.75;
@@ -56,6 +58,14 @@ export class Point<Hex extends boolean> {
   toHash(): string {
     return String(this.toArray());
   }
+}
+
+export function fromHash(hash: string): Point<true> {
+  assert(hash.split(',').length === 2, 'The hex hash should consist of two numbers');
+  assert(!isNaN(Number(hash.split(',')[0])), 'The first item in the hash is not a number');
+  assert(!isNaN(Number(hash.split(',')[1])), 'The second item in the hash is not a number');
+  const [x, y] = hash.split(',');
+  return new Point(Number(x), Number(y));
 }
 
 export const hexVertices = [

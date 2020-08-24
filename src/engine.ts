@@ -3,6 +3,7 @@ import { displayDraw, displayInit } from 'display';
 import { eventQueueRun } from 'eventQueue';
 import { updateGui } from 'gui';
 import { resourcesInit } from 'resources';
+import { terrainInit } from 'terrain';
 
 export function engineInit(): void {
   if (process.env.NODE_ENV !== 'production') {
@@ -27,6 +28,7 @@ export function engineInit(): void {
   }
 
   resourcesInit();
+  terrainInit();
   displayInit();
   buildingsInit();
   addBuildingButton('lumberjackHut');
