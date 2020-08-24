@@ -41,8 +41,8 @@ export function terrainInit(): void {
     }
   }
 
-  function addDesert(hex: Point<true>): void {
-    if (specialForbidden.has(hex.toHash())) {
+  function addDesert(hex: Point<true>, forbiddenSetToCheck = specialForbidden): void {
+    if (forbiddenSetToCheck.has(hex.toHash())) {
       return;
     }
 
@@ -68,7 +68,7 @@ export function terrainInit(): void {
     for (let x = -size; x <= size; x += 1) {
       const distance = (x ** 2 + y ** 2) ** 0.5;
       if (distance < size && distance > size - 1.5) {
-        addDesert(new Point(x, y));
+        addDesert(new Point(x, y), new Set());
       }
     }
   }
