@@ -1,5 +1,5 @@
 import { addBuildingButton, buildingsInit } from 'buildings';
-import { displayDraw, displayInit } from 'display';
+import { displayInit, displayUpdate } from 'display';
 import { eventQueueRun } from 'eventQueue';
 import { updateGui } from 'gui';
 import { resourcesInit } from 'resources';
@@ -37,6 +37,6 @@ export function engineInit(): void {
 
 export function engineTick(): void {
   eventQueueRun();
-  displayDraw();
+  displayUpdate();
   updateGui();
 }

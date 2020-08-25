@@ -61,7 +61,7 @@ function mouseInit(): void {
   });
 }
 
-export function displayDraw(): void {
+export function displayUpdate(): void {
   clearCanvas();
   updateHex();
   for (const drawable of getDrawables()) {
