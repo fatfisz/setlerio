@@ -1,7 +1,7 @@
 import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { getNextFrame } from 'frame';
-import { hexVertices, neighborOffsets, Point } from 'hex';
+import { hexVertices, neighborHexes, Point } from 'hex';
 import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
 import { getTextImage } from 'text';
 
@@ -53,7 +53,7 @@ export function buildingsInit(): void {
 
 function addAreaExpandingBuilding(name: 'townCenter' | 'tower', hex: Point<true>): void {
   setBuilding(hex, name, true);
-  neighborOffsets.forEach((neighborHex) => {
+  neighborHexes.forEach((neighborHex) => {
     setBuilding(hex.add(neighborHex), 'blank', false);
   });
 }

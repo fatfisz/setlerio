@@ -77,7 +77,7 @@ export const hexVertices = [
   new Point<false>(-hexWidth / 2, 0),
 ];
 
-export const neighborOffsets = [
+export const neighborHexes = [
   new Point<true>(0, -1),
   new Point<true>(1, -1),
   new Point<true>(-1, 0),

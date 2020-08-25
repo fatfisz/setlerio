@@ -1,7 +1,7 @@
 import { getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
-import { isInHex, neighborOffsets, Point } from 'hex';
+import { isInHex, neighborHexes, Point } from 'hex';
 
 const displayWidth = 1000;
 const displayHeight = 1000;
@@ -82,7 +82,7 @@ function clearCanvas(): void {
 function updateHex(): void {
   const absoluteMouse = mouse.sub(camera);
   const absoluteProbableMid = absoluteMouse.toHex().round().toCanvas();
-  neighborOffsets.forEach((neighborHex) => {
+  neighborHexes.forEach((neighborHex) => {
     const absoluteNeighbor = absoluteProbableMid.add(neighborHex.toCanvas());
     if (isInHex(absoluteMouse.sub(absoluteNeighbor))) {
       hoveredHex = absoluteNeighbor.toHex();

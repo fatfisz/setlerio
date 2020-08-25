@@ -1,5 +1,5 @@
 import { drawablePush } from 'drawables';
-import { fromHash, hexVertices, neighborOffsets, Point } from 'hex';
+import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 
 type Terrain = 'meadow' | 'forest' | 'mountains' | 'desert' | 'water';
 
@@ -14,7 +14,7 @@ const mountainRange = [3, 5] as const;
 export function terrainInit(): void {
   const hashToTerrain = new Map<string, Terrain>();
   const specialForbidden = new Set<string>(
-    neighborOffsets.map((neighborHex) => neighborHex.toHash()),
+    neighborHexes.map((neighborHex) => neighborHex.toHash()),
   );
 
   function addSpecial(
@@ -34,10 +34,10 @@ export function terrainInit(): void {
 
     hashToTerrain.set(hex.toHash(), terrain);
 
-    const nextHex = hex.add(neighborOffsets[Math.floor(Math.random() * neighborOffsets.length)]);
+    const nextHex = hex.add(neighborHexes[Math.floor(Math.random() * neighborHexes.length)]);
     addSpecial(terrain, nextHex, [0, 0], ignoreForbiddenCheck, left - 1);
 
-    for (const neighborHex of neighborOffsets) {
+    for (const neighborHex of neighborHexes) {
       specialForbidden.add(hex.add(neighborHex).toHash());
     }
   }
