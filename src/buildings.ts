@@ -53,9 +53,9 @@ export function buildingsInit(): void {
 
 function addAreaExpandingBuilding(name: 'townCenter' | 'tower', hex: Point<true>): void {
   setBuilding(hex, name, true);
-  neighborHexes.forEach((neighborHex) => {
+  for (const neighborHex of neighborHexes) {
     setBuilding(hex.add(neighborHex), 'blank', false);
-  });
+  }
 }
 
 function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): void {

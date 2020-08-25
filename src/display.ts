@@ -82,10 +82,10 @@ function clearCanvas(): void {
 function updateHex(): void {
   const absoluteMouse = mouse.sub(camera);
   const absoluteProbableMid = absoluteMouse.toHex().round().toCanvas();
-  neighborHexes.forEach((neighborHex) => {
+  for (const neighborHex of neighborHexes) {
     const absoluteNeighbor = absoluteProbableMid.add(neighborHex.toCanvas());
     if (isInHex(absoluteMouse.sub(absoluteNeighbor))) {
       hoveredHex = absoluteNeighbor.toHex();
     }
-  });
+  }
 }

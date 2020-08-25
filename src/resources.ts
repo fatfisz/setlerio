@@ -33,8 +33,8 @@ export function getMissingResourceInfo(requirements: Requirements): string[] {
 }
 
 export function deduceResources(requirements: Requirements): void {
-  requirements.forEach(([name, count]) => {
+  for (const [name, count] of requirements) {
     assert(count <= resources[name], `Not enough ${name}`);
     resources[name] -= count;
-  });
+  }
 }
