@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 
-let gui: GUI | null = null;
+let gui: GUI | undefined = undefined;
 
 export function updateGui(): void {
   useGui((gui) => {
@@ -10,7 +10,7 @@ export function updateGui(): void {
 
 export function useGui(callback: (gui: GUI) => void): void {
   if (process.env.NODE_ENV !== 'production') {
-    if (gui === null) {
+    if (!gui) {
       gui = new (require('dat.gui').GUI)() as GUI;
       gui.close();
     }
