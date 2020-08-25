@@ -8,7 +8,8 @@ const waterSize = size + 10;
 const meadowThreshold = 0.4;
 const forestThreshold = 0.85;
 const mountainsThreshold = 0.95;
-const mountainHorizontalFactor = 1 / 2.5;
+const desertRange = [1, 2] as const;
+const mountainRange = [3, 5] as const;
 
 export function terrainInit(): void {
   const hashToTerrain = new Map<string, Terrain>();
@@ -16,8 +17,14 @@ export function terrainInit(): void {
     neighborOffsets.map((neighborHex) => neighborHex.toHash()),
   );
 
-  function addMountains(hex: Point<true>, left = 3 + Math.random() * 2): void {
-    if (specialForbidden.has(hex.toHash())) {
+  function addSpecial(
+    terrain: Terrain,
+    hex: Point<true>,
+    [rangeLower, rangeUpper]: readonly [number, number],
+    ignoreForbiddenCheck = false,
+    left = rangeLower + Math.random() * (rangeUpper - rangeLower),
+  ): void {
+    if (!ignoreForbiddenCheck && specialForbidden.has(hex.toHash())) {
       return;
     }
 
@@ -25,36 +32,13 @@ export function terrainInit(): void {
       return;
     }
 
-    hashToTerrain.set(hex.toHash(), 'mountains');
+    hashToTerrain.set(hex.toHash(), terrain);
 
-    const random = Math.random();
-    if (random < mountainHorizontalFactor) {
-      addMountains(hex.addCoords(1, 0), left - 1);
-    } else if (random < 2 * mountainHorizontalFactor) {
-      addMountains(hex.addCoords(0, 1), left - 1);
-    } else {
-      addMountains(hex.addCoords(-1, 1), left - 1);
-    }
+    const nextHex = hex.add(neighborOffsets[Math.floor(Math.random() * neighborOffsets.length)]);
+    addSpecial(terrain, nextHex, [0, 0], ignoreForbiddenCheck, left - 1);
 
     for (const neighborHex of neighborOffsets) {
       specialForbidden.add(hex.add(neighborHex).toHash());
-    }
-  }
-
-  function addDesert(hex: Point<true>, forbiddenSetToCheck = specialForbidden): void {
-    if (forbiddenSetToCheck.has(hex.toHash())) {
-      return;
-    }
-
-    const hexes = [
-      hex,
-      hex.add(neighborOffsets[Math.floor(Math.random() * neighborOffsets.length)]),
-    ];
-    for (const hex of hexes) {
-      hashToTerrain.set(hex.toHash(), 'desert');
-      for (const neighborHex of neighborOffsets) {
-        specialForbidden.add(hex.add(neighborHex).toHash());
-      }
     }
   }
 
@@ -68,7 +52,7 @@ export function terrainInit(): void {
     for (let x = -size; x <= size; x += 1) {
       const distance = (x ** 2 + y ** 2) ** 0.5;
       if (distance < size && distance > size - 1.5) {
-        addDesert(new Point(x, y), new Set());
+        addSpecial('desert', new Point(x, y), desertRange, true);
       }
     }
   }
@@ -87,9 +71,9 @@ export function terrainInit(): void {
         } else if (random < forestThreshold) {
           hashToTerrain.set(hex.toHash(), 'forest');
         } else if (random < mountainsThreshold) {
-          addMountains(hex);
+          addSpecial('mountains', hex, mountainRange);
         } else {
-          addDesert(hex);
+          addSpecial('desert', hex, desertRange);
         }
 
         if (hashToTerrain.get(hex.toHash()) === 'water') {
