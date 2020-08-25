@@ -110,9 +110,8 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
   return (
     context: CanvasRenderingContext2D,
     camera: Point<false>,
-    mouse: Point<false>,
-    hoveredHex: Point<true>,
-    hover: boolean,
+    mouse: Point<false> | undefined,
+    hoveredHex: Point<true> | undefined,
   ): void => {
     context.lineJoin = 'round';
     context.lineWidth = 3;
@@ -128,7 +127,7 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
       context.lineTo(...relativeMid.add(restHex).toArray());
     }
     context.closePath();
-    if (hover && hex.equal(hoveredHex)) {
+    if (hoveredHex && hex.equal(hoveredHex)) {
       context.fill();
     }
     context.stroke();
