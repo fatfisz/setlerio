@@ -1,4 +1,4 @@
-const fps = 20;
+const fps = 60;
 
 // Leave a margin of error of 1ms so that frames aren't skipped overzealously
 export const frameDuration = 1000 / fps - 1;
