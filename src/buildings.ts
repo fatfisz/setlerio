@@ -1,7 +1,7 @@
 import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { fps, getNextFrame } from 'frame';
-import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
+import { fromHash, hexVertices, neighborHexes, neighborHexesSquared, Point } from 'hex';
 import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
 import { getTextImage } from 'text';
 
@@ -61,12 +61,12 @@ export function buildingsInit(): void {
   }
 
   buildings.clear();
-  addAreaExpandingBuilding('townCenter', new Point(0, 0));
-  addAreaExpandingBuilding('tower', new Point(2, -2));
-  addAreaExpandingBuilding('tower', new Point(3, -1));
+  addAreaExpandingBuilding(new Point(0, 0), 'townCenter');
+  addAreaExpandingBuilding(new Point(2, -2), 'tower');
+  addAreaExpandingBuilding(new Point(3, -1), 'tower');
 }
 
-function addAreaExpandingBuilding(name: AreaExpandingBuilding, hex: Point<true>): void {
+function addAreaExpandingBuilding(hex: Point<true>, name: AreaExpandingBuilding): void {
   setBuilding(hex, name, true);
   recalculateBorder();
 }
@@ -96,14 +96,10 @@ function recalculateBorder(): void {
   const buildingHashes = new Set<string>();
   borderHexes.clear();
 
-  for (const building of buildings.values()) {
-    if (building.name === 'townCenter' || building.name === 'tower') {
-      for (const neighborHexFirstLayer of neighborHexes) {
-        for (const neighborHexSecondLayer of neighborHexes) {
-          buildingHashes.add(
-            building.hex.add(neighborHexFirstLayer).add(neighborHexSecondLayer).toHash(),
-          );
-        }
+  for (const { name, hex } of buildings.values()) {
+    if (name === 'townCenter' || name === 'tower') {
+      for (const neighborHex of neighborHexesSquared) {
+        buildingHashes.add(hex.add(neighborHex).toHash());
       }
     }
   }

@@ -60,16 +60,18 @@ export class Point<Hex extends boolean> {
   }
 
   toHash(): string {
-    return String(this.toArray());
+    return `${this.x},${this.y}`;
   }
 }
 
 export function fromHash(hash: string): Point<true> {
-  assert(hash.split(',').length === 2, 'The hex hash should consist of two numbers');
-  assert(!isNaN(Number(hash.split(',')[0])), 'The first item in the hash is not a number');
-  assert(!isNaN(Number(hash.split(',')[1])), 'The second item in the hash is not a number');
-  const [x, y] = hash.split(',');
-  return new Point(Number(x), Number(y));
+  const commaPosition = hash.indexOf(',');
+  assert(commaPosition >= 0, 'Hash should contain at least one comma');
+  const x = Number(hash.slice(0, commaPosition));
+  const y = Number(hash.slice(commaPosition + 1));
+  assert(!isNaN(x), 'The first item in the hash is not a number');
+  assert(!isNaN(y), 'The second item in the hash is not a number');
+  return new Point(x, y);
 }
 
 export const hexVertices = [
@@ -90,6 +92,23 @@ export const neighborHexes = [
   new Point<true>(-1, 0),
   new Point<true>(0, 0),
 ];
+
+export const outerHexes = [
+  new Point<true>(-2, 2),
+  new Point<true>(-1, 2),
+  new Point<true>(0, 2),
+  new Point<true>(1, 1),
+  new Point<true>(2, 0),
+  new Point<true>(2, -1),
+  new Point<true>(2, -2),
+  new Point<true>(1, -2),
+  new Point<true>(0, -2),
+  new Point<true>(-1, -1),
+  new Point<true>(-2, 0),
+  new Point<true>(-2, 1),
+];
+
+export const neighborHexesSquared = [...neighborHexes, ...outerHexes];
 
 export function isInHex({ x, y }: Point<false>): boolean {
   const absX = Math.abs(x);
