@@ -107,18 +107,13 @@ function build(name: BuildingName): void {
 }
 
 function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
-  return (
-    context: CanvasRenderingContext2D,
-    camera: Point<false>,
-    mouse: Point<false> | undefined,
-    hoveredHex: Point<true> | undefined,
-  ): void => {
+  return (context: CanvasRenderingContext2D, hoveredHex: Point<true> | undefined): void => {
     context.lineJoin = 'round';
     context.lineWidth = 3;
     context.strokeStyle = 'black';
     context.fillStyle = 'hotpink';
 
-    const relativeMid = hex.toCanvas().add(camera);
+    const relativeMid = hex.toCanvas();
 
     context.beginPath();
     const [firstHex, ...restHexes] = hexVertices;

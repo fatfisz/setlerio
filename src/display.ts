@@ -1,3 +1,4 @@
+import { assert } from 'devAssert';
 import { getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
@@ -8,9 +9,21 @@ const displayHeight = 1000;
 
 const [canvas, context] = getCanvas(displayWidth, displayHeight);
 
-const camera = new Point<false>(displayWidth / 2, displayHeight / 2);
-let mouse: Point<false> | undefined = undefined;
-let hoveredHex: Point<true> | undefined = undefined;
+let camera = new Point<false>(0, 0);
+let zoom = 1;
+
+let mouseRelative: Point<false> | undefined;
+let hoveredCanvas: Point<false> | undefined;
+let hoveredHex: Point<true> | undefined;
+let mouseDownRelative: Point<false> | undefined;
+let mouseDownCanvas: Point<false> | undefined;
+let mouseDownHex: Point<true> | undefined;
+let dragging: boolean;
+
+const dragThreshold = 5;
+const maxZoom = 1;
+const minZoom = 0.5;
+const zoomStep = (maxZoom - minZoom) / 8;
 
 export function displayInit(): void {
   useGui((gui) => {
@@ -21,11 +34,14 @@ export function displayInit(): void {
       get cameraY(): number {
         return camera.y;
       },
-      get mouseX(): number | string {
-        return mouse?.x ?? '';
+      get zoom(): number {
+        return zoom;
       },
-      get mouseY(): number | string {
-        return mouse?.y ?? '';
+      get canvasX(): number | string {
+        return hoveredCanvas?.x ?? '';
+      },
+      get canvasY(): number | string {
+        return hoveredCanvas?.y ?? '';
       },
       get hexX(): number | string {
         return hoveredHex?.x ?? '';
@@ -33,16 +49,22 @@ export function displayInit(): void {
       get hexY(): number | string {
         return hoveredHex?.y ?? '';
       },
+      reset(): void {
+        camera = new Point(0, 0);
+        zoom = 1;
+      },
     };
 
     const display = gui.addFolder('display');
     display.open();
     display.add(displayState, 'cameraX');
     display.add(displayState, 'cameraY');
-    display.add(displayState, 'mouseX');
-    display.add(displayState, 'mouseY');
+    display.add(displayState, 'zoom');
+    display.add(displayState, 'canvasX');
+    display.add(displayState, 'canvasY');
     display.add(displayState, 'hexX');
     display.add(displayState, 'hexY');
+    display.add(displayState, 'reset');
   });
   document.body.append(canvas);
   mouseInit();
@@ -50,40 +72,144 @@ export function displayInit(): void {
 
 function mouseInit(): void {
   canvas.addEventListener('mousemove', (event) => {
-    const { left, top, width, height } = canvas.getBoundingClientRect();
-    mouse = new Point(
-      (event.clientX - left) * (displayWidth / width),
-      (event.clientY - top) * (displayHeight / height),
-    );
+    mouseRelative = normalizeClientPosition(event);
+    calculateDerivatives();
   });
+
+  document.addEventListener('mousemove', (event) => {
+    if (mouseDownCanvas) {
+      mouseRelative = normalizeClientPosition(event);
+      assert(
+        mouseDownRelative,
+        'mouseDownRelative should be defined if mouseDownCanvas is defined',
+      );
+      if (!dragging && mouseDownRelative.distance(mouseRelative) > dragThreshold) {
+        dragging = true;
+      }
+      if (dragging) {
+        camera = cameraFromCanvas(mouseDownCanvas);
+      }
+      calculateDerivatives();
+    }
+  });
+
+  canvas.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+  });
+
+  canvas.addEventListener('wheel', ({ deltaY }) => {
+    if (deltaY > 0) {
+      zoom -= zoomStep;
+    }
+    if (deltaY < 0) {
+      zoom += zoomStep;
+    }
+    zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+    assert(hoveredCanvas, 'hoveredCanvas should be defined since wheel happens on the canvas');
+    camera = cameraFromCanvas(hoveredCanvas);
+  });
+
   canvas.addEventListener('mouseout', () => {
-    mouse = undefined;
+    if (!dragging) {
+      mouseRelative = undefined;
+      hoveredCanvas = undefined;
+      hoveredHex = undefined;
+    }
   });
+
+  canvas.addEventListener('mousedown', () => {
+    mouseDownRelative = mouseRelative;
+    mouseDownCanvas = hoveredCanvas;
+    mouseDownHex = hoveredHex;
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    assert(hoveredHex, 'hoveredHex should be defined since mouseup happens on the canvas');
+    if (!dragging && mouseDownHex?.equal(hoveredHex)) {
+      console.log('clicked!');
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (
+      mouseRelative &&
+      (mouseRelative.x < 0 ||
+        mouseRelative.y < 0 ||
+        mouseRelative.x > displayWidth ||
+        mouseRelative.y > displayHeight)
+    ) {
+      mouseRelative = undefined;
+      hoveredCanvas = undefined;
+      hoveredHex = undefined;
+    }
+
+    mouseDownRelative = undefined;
+    mouseDownCanvas = undefined;
+    mouseDownHex = undefined;
+    dragging = false;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    mouseRelative = undefined;
+    hoveredCanvas = undefined;
+    hoveredHex = undefined;
+    mouseDownRelative = undefined;
+    mouseDownCanvas = undefined;
+    mouseDownHex = undefined;
+    dragging = false;
+  });
+}
+
+function normalizeClientPosition({
+  clientX,
+  clientY,
+}: {
+  clientX: number;
+  clientY: number;
+}): Point<false> {
+  const { left, top, width, height } = canvas.getBoundingClientRect();
+  return new Point(
+    (clientX - left) * (displayWidth / width),
+    (clientY - top) * (displayHeight / height),
+  );
+}
+
+function calculateDerivatives(): void {
+  assert(mouseRelative, 'mouseRelative should be defined when calculating the derivatives');
+
+  hoveredCanvas = mouseRelative
+    .subCoords(displayWidth / 2, displayHeight / 2)
+    .mul(1 / zoom)
+    .add(camera);
+
+  const absoluteProbableMid = hoveredCanvas.toHex().round().toCanvas();
+  for (const neighborHex of neighborHexes) {
+    const absoluteNeighbor = absoluteProbableMid.add(neighborHex.toCanvas());
+    if (isInHex(hoveredCanvas.sub(absoluteNeighbor))) {
+      hoveredHex = absoluteNeighbor.toHex();
+    }
+  }
 }
 
 export function displayUpdate(): void {
   clearCanvas();
-  updateHex();
   for (const drawable of getDrawables()) {
-    drawable(context, camera, mouse, hoveredHex);
+    drawable(context, hoveredHex);
   }
 }
 
 function clearCanvas(): void {
+  context.resetTransform();
   context.clearRect(0, 0, displayWidth, displayHeight);
+  context.translate(displayWidth / 2, displayHeight / 2);
+  context.scale(zoom, zoom);
+  context.translate(-camera.x, -camera.y);
 }
 
-function updateHex(): void {
-  if (mouse) {
-    const absoluteMouse = mouse.sub(camera);
-    const absoluteProbableMid = absoluteMouse.toHex().round().toCanvas();
-    for (const neighborHex of neighborHexes) {
-      const absoluteNeighbor = absoluteProbableMid.add(neighborHex.toCanvas());
-      if (isInHex(absoluteMouse.sub(absoluteNeighbor))) {
-        hoveredHex = absoluteNeighbor.toHex();
-      }
-    }
-  } else {
-    hoveredHex = undefined;
-  }
+function cameraFromCanvas(canvasPosition: Point<false>): Point<false> {
+  return mouseRelative!
+    .subCoords(displayWidth / 2, displayHeight / 2)
+    .mul(1 / zoom)
+    .sub(canvasPosition)
+    .mul(-1);
 }

@@ -21,12 +21,20 @@ export class Point<Hex extends boolean> {
     return new Point(this.x + point.x, this.y + point.y);
   }
 
+  mul(factor: number): Point<Hex> {
+    return new Point(this.x * factor, this.y * factor);
+  }
+
   addCoords(x: number, y: number): Point<Hex> {
     return new Point(this.x + x, this.y + y);
   }
 
   sub(point: Point<Hex>): Point<Hex> {
     return new Point(this.x - point.x, this.y - point.y);
+  }
+
+  subCoords(x: number, y: number): Point<Hex> {
+    return new Point(this.x - x, this.y - y);
   }
 
   toHex(): Point<true> {
@@ -49,6 +57,10 @@ export class Point<Hex extends boolean> {
 
   equal({ x, y }: Point<Hex>): boolean {
     return this.x === x && this.y === y;
+  }
+
+  distance({ x, y }: Point<false>): number {
+    return ((this.x - x) ** 2 + (this.y - y) ** 2) ** 0.5;
   }
 
   toArray(): [number, number] {

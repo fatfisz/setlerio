@@ -104,13 +104,13 @@ const terrainColor: Record<Terrain, string> = {
 };
 
 function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point<true> }) {
-  return (context: CanvasRenderingContext2D, camera: Point<false>): void => {
+  return (context: CanvasRenderingContext2D): void => {
     context.lineJoin = 'round';
     context.lineWidth = 0.5;
     context.strokeStyle = 'black';
     context.fillStyle = terrainColor[terrain];
 
-    const relativeMid = hex.toCanvas().add(camera);
+    const relativeMid = hex.toCanvas();
 
     context.beginPath();
     const [firstHex, ...restHexes] = hexVertices;

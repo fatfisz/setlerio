@@ -1,11 +1,6 @@
 import { Point } from 'hex';
 
-type Drawable = (
-  context: CanvasRenderingContext2D,
-  camera: Point<false>,
-  mouse: Point<false> | undefined,
-  hoveredHex: Point<true> | undefined,
-) => void;
+type Drawable = (context: CanvasRenderingContext2D, hoveredHex: Point<true> | undefined) => void;
 
 let lastHandle = 0;
 
