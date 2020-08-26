@@ -29,9 +29,7 @@ export default {
     replace({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    terser({
-      toplevel: true,
-    }),
+    terser(),
     prependHtml(),
   ],
   output: {
