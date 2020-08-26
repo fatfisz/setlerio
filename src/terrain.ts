@@ -1,10 +1,9 @@
 import { drawablePush } from 'drawables';
 import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 
-type Terrain = 'meadow' | 'forest' | 'mountains' | 'desert' | 'water';
+type Terrain = 'meadow' | 'forest' | 'mountains' | 'desert';
 
 const size = 28;
-const waterSize = size + 10;
 const meadowThreshold = 0.4;
 const forestThreshold = 0.85;
 const mountainsThreshold = 0.95;
@@ -42,12 +41,6 @@ export function terrainInit(): void {
     }
   }
 
-  for (let y = -waterSize; y <= waterSize; y += 1) {
-    for (let x = -waterSize; x <= waterSize; x += 1) {
-      hashToTerrain.set(new Point(x, y).toHash(), 'water');
-    }
-  }
-
   for (let y = -size; y <= size; y += 1) {
     for (let x = -size; x <= size; x += 1) {
       const distance = (x ** 2 + y ** 2) ** 0.5;
@@ -61,7 +54,7 @@ export function terrainInit(): void {
     for (let x = -size; x <= size; x += 1) {
       if ((x ** 2 + y ** 2) ** 0.5 < size) {
         const hex = new Point<true>(x, y);
-        if (hashToTerrain.get(hex.toHash()) !== 'water') {
+        if (hashToTerrain.has(hex.toHash())) {
           continue;
         }
 
@@ -76,7 +69,7 @@ export function terrainInit(): void {
           addSpecial('desert', hex, desertRange);
         }
 
-        if (hashToTerrain.get(hex.toHash()) === 'water') {
+        if (!hashToTerrain.has(hex.toHash())) {
           hashToTerrain.set(hex.toHash(), 'meadow');
         }
       }
@@ -86,11 +79,13 @@ export function terrainInit(): void {
   hashToTerrain.set(new Point(0, 0).toHash(), 'meadow');
 
   for (const [hash, terrain] of hashToTerrain.entries()) {
+    const hex = fromHash(hash);
     drawablePush(
       drawTerrain({
         terrain,
-        hex: fromHash(hash),
+        hex,
       }),
+      hex,
     );
   }
 }
@@ -100,7 +95,6 @@ const terrainColor: Record<Terrain, string> = {
   forest: 'forestgreen',
   mountains: 'sienna',
   desert: 'gold',
-  water: '#D6EAF8',
 };
 
 function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point<true> }) {

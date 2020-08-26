@@ -74,6 +74,7 @@ function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): 
         name: buildingDefs[name].name,
         hex,
       }),
+      hex,
     ),
   });
 }
