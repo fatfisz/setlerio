@@ -102,13 +102,7 @@ function mouseInit(): void {
       // There's no relative point for the zoom
       return;
     }
-    if (deltaY > 0) {
-      zoom -= zoomStep;
-    }
-    if (deltaY < 0) {
-      zoom += zoomStep;
-    }
-    zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+    zoom = Math.max(minZoom, Math.min(maxZoom, zoom - Math.sign(deltaY) * zoomStep));
     camera = cameraFromCanvas(hoveredCanvas);
   });
 
