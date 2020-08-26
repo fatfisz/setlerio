@@ -1,11 +1,12 @@
 import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
-import { getNextFrame } from 'frame';
-import { hexVertices, neighborHexes, Point } from 'hex';
+import { fps, getNextFrame } from 'frame';
+import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
 import { getTextImage } from 'text';
 
 type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
+type AreaExpandingBuilding = 'townCenter' | 'tower';
 
 interface BuildingInfo {
   name: BuildingName;
@@ -45,17 +46,29 @@ const buildingDefs: Readonly<Record<
 };
 
 const buildings = new Map<string, BuildingInfo>();
+const buildingsToDestroy = new Set<string>();
+const borderHexes = new Set<Point<true>>();
+let borderEstabilished = false;
 
 export function buildingsInit(): void {
+  if (!borderEstabilished) {
+    drawablePush(drawBorder);
+    eventQueuePush({
+      run: animateBorder,
+      duration: Infinity,
+    });
+    borderEstabilished = true;
+  }
+
   buildings.clear();
   addAreaExpandingBuilding('townCenter', new Point(0, 0));
+  addAreaExpandingBuilding('tower', new Point(2, -2));
+  addAreaExpandingBuilding('tower', new Point(3, -1));
 }
 
-function addAreaExpandingBuilding(name: 'townCenter' | 'tower', hex: Point<true>): void {
+function addAreaExpandingBuilding(name: AreaExpandingBuilding, hex: Point<true>): void {
   setBuilding(hex, name, true);
-  for (const neighborHex of neighborHexes) {
-    setBuilding(hex.add(neighborHex), 'blank', false);
-  }
+  recalculateBorder();
 }
 
 function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): void {
@@ -77,6 +90,42 @@ function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): 
       hex,
     ),
   });
+}
+
+function recalculateBorder(): void {
+  const buildingHashes = new Set<string>();
+  borderHexes.clear();
+
+  for (const building of buildings.values()) {
+    if (building.name === 'townCenter' || building.name === 'tower') {
+      for (const neighborHexFirstLayer of neighborHexes) {
+        for (const neighborHexSecondLayer of neighborHexes) {
+          buildingHashes.add(
+            building.hex.add(neighborHexFirstLayer).add(neighborHexSecondLayer).toHash(),
+          );
+        }
+      }
+    }
+  }
+
+  for (const hash of buildingHashes) {
+    const hex = fromHash(hash);
+    setBuilding(hex, 'blank', false);
+    for (const neighborHex of neighborHexes) {
+      if (!buildingHashes.has(hex.add(neighborHex).toHash())) {
+        borderHexes.add(hex);
+        break;
+      }
+    }
+  }
+
+  for (const [hash, building] of buildings) {
+    if (!buildingHashes.has(hash)) {
+      drawableRemove(building.drawableHandle);
+      buildings.delete(hash);
+      buildingsToDestroy.add(hash);
+    }
+  }
 }
 
 export function addBuildingButton(name: BuildingName): void {
@@ -112,7 +161,7 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
     context.lineJoin = 'round';
     context.lineWidth = 3;
     context.strokeStyle = 'black';
-    context.fillStyle = 'hotpink';
+    context.fillStyle = '#fffa';
 
     const relativeMid = hex.toCanvas();
 
@@ -126,9 +175,8 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
     if (hoveredHex && hex.equal(hoveredHex)) {
       context.fill();
     }
-    context.stroke();
 
-    const text = getTextImage(`[${hex.x}, ${hex.y}]\n${name}`, [0, 0, 0]);
+    const text = getTextImage(name, [0, 0, 0]);
     context.drawImage(
       text,
       ...relativeMid.add(new Point<false>(text.width, text.height).mul(-1.5)).round().toArray(),
@@ -136,4 +184,38 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
       text.height * 3,
     );
   };
+}
+
+const dashLength = 6;
+const dashSpace = 4;
+const dashSpeed = (dashLength + dashSpace) / fps / 0.8;
+let borderLineDashOffset = 0;
+
+function drawBorder(context: CanvasRenderingContext2D): void {
+  context.beginPath();
+
+  for (const hex of borderHexes) {
+    const relativeMid = hex.toCanvas();
+    for (let index = 0; index < 6; index += 1) {
+      if (!buildings.has(hex.add(neighborHexes[index]).toHash())) {
+        context.moveTo(...relativeMid.add(hexVertices[index]).toArray());
+        context.lineTo(...relativeMid.add(hexVertices[(index + 1) % 6]).toArray());
+      }
+    }
+  }
+
+  context.lineJoin = 'round';
+  context.lineWidth = 4;
+  context.strokeStyle = 'white';
+  context.lineDashOffset = borderLineDashOffset;
+  context.setLineDash([dashLength, dashSpace]);
+
+  context.stroke();
+
+  context.lineDashOffset = 0;
+  context.setLineDash([]);
+}
+
+function animateBorder(currentFrame: number): void {
+  borderLineDashOffset = (currentFrame * dashSpeed) % (dashLength + dashSpace);
 }

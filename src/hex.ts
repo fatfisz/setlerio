@@ -82,13 +82,13 @@ export const hexVertices = [
 ];
 
 export const neighborHexes = [
-  new Point<true>(0, -1),
-  new Point<true>(1, -1),
-  new Point<true>(-1, 0),
-  new Point<true>(0, 0),
-  new Point<true>(1, 0),
   new Point<true>(-1, 1),
   new Point<true>(0, 1),
+  new Point<true>(1, 0),
+  new Point<true>(1, -1),
+  new Point<true>(0, -1),
+  new Point<true>(-1, 0),
+  new Point<true>(0, 0),
 ];
 
 export function isInHex({ x, y }: Point<false>): boolean {
