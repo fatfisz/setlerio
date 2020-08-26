@@ -98,6 +98,10 @@ function mouseInit(): void {
   });
 
   canvas.addEventListener('wheel', ({ deltaY }) => {
+    if (!hoveredCanvas) {
+      // There's no relative point for the zoom
+      return;
+    }
     if (deltaY > 0) {
       zoom -= zoomStep;
     }
@@ -105,7 +109,6 @@ function mouseInit(): void {
       zoom += zoomStep;
     }
     zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
-    assert(hoveredCanvas, 'hoveredCanvas should be defined since wheel happens on the canvas');
     camera = cameraFromCanvas(hoveredCanvas);
   });
 
@@ -124,8 +127,7 @@ function mouseInit(): void {
   });
 
   canvas.addEventListener('mouseup', () => {
-    assert(hoveredHex, 'hoveredHex should be defined since mouseup happens on the canvas');
-    if (!dragging && mouseDownHex?.equal(hoveredHex)) {
+    if (!dragging && mouseDownHex && hoveredHex && mouseDownHex.equal(hoveredHex)) {
       console.log('clicked!');
     }
   });
