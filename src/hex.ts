@@ -17,23 +17,15 @@ export class Point<Hex extends boolean> {
     this.y = y;
   }
 
-  add(point: Point<Hex>): Point<Hex> {
-    return new Point(this.x + point.x, this.y + point.y);
+  add({ x, y }: Point<Hex>): Point<Hex> {
+    return new Point(this.x + x, this.y + y);
   }
 
   mul(factor: number): Point<Hex> {
     return new Point(this.x * factor, this.y * factor);
   }
 
-  addCoords(x: number, y: number): Point<Hex> {
-    return new Point(this.x + x, this.y + y);
-  }
-
-  sub(point: Point<Hex>): Point<Hex> {
-    return new Point(this.x - point.x, this.y - point.y);
-  }
-
-  subCoords(x: number, y: number): Point<Hex> {
+  sub({ x, y }: Point<Hex>): Point<Hex> {
     return new Point(this.x - x, this.y - y);
   }
 
@@ -102,11 +94,9 @@ export const neighborHexes = [
 export function isInHex({ x, y }: Point<false>): boolean {
   const absX = Math.abs(x);
   const absY = Math.abs(y);
-  if (absY > hexHeight / 2 || absX > hexWidth / 2) {
-    return false;
-  }
-  if (absX <= hexBaseWidth / 2) {
-    return true;
-  }
-  return (hexWidth / 2 - absX) / (hexWidth - hexBaseWidth) >= absY / hexHeight;
+  return (
+    absY <= hexHeight / 2 &&
+    (absX <= hexBaseWidth / 2 ||
+      hexWidth / 2 - absX >= absY * ((hexWidth - hexBaseWidth) / hexHeight))
+  );
 }

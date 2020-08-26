@@ -131,10 +131,7 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
     const text = getTextImage(`[${hex.x}, ${hex.y}]\n${name}`, [0, 0, 0]);
     context.drawImage(
       text,
-      ...relativeMid
-        .addCoords(-text.width * 1.5, -text.height * 1.5)
-        .round()
-        .toArray(),
+      ...relativeMid.add(new Point<false>(text.width, text.height).mul(-1.5)).round().toArray(),
       text.width * 3,
       text.height * 3,
     );

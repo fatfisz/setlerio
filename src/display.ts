@@ -29,6 +29,8 @@ const zoomStep = (maxZoom - minZoom) / 8;
 const visibleHexHorizontalRange = displayWidth / minZoom / ((hexWidth + hexBaseWidth) / 2) + 2;
 const visibleHexVerticalRange = displayHeight / minZoom / hexHeight + 2;
 
+const midCanvas: Point<false> = new Point(displayWidth / 2, displayHeight / 2);
+
 export function displayInit(): void {
   useGui((gui) => {
     const displayState = {
@@ -178,7 +180,7 @@ function calculateDerivatives(): void {
   assert(mouseRelative, 'mouseRelative should be defined when calculating the derivatives');
 
   hoveredCanvas = mouseRelative
-    .subCoords(displayWidth / 2, displayHeight / 2)
+    .sub(midCanvas)
     .mul(1 / zoom)
     .add(camera);
 
@@ -189,6 +191,16 @@ function calculateDerivatives(): void {
       hoveredHex = absoluteNeighbor.toHex();
     }
   }
+}
+
+function cameraFromCanvas(canvasPosition: Point<false>): Point<false> {
+  assert(mouseRelative, 'mouseRelative should be defined when calculating camera from canvas');
+
+  return mouseRelative
+    .sub(midCanvas)
+    .mul(1 / zoom)
+    .sub(canvasPosition)
+    .mul(-1);
 }
 
 export function displayUpdate(): void {
@@ -202,13 +214,6 @@ export function displayUpdate(): void {
   }
 }
 
-function isHexWithinRange(hex1: Point<true>, hex2: Point<true>): boolean {
-  const { x, y } = hex1.sub(hex2);
-  return (
-    Math.abs(x + y) <= visibleHexHorizontalRange / 2 && Math.abs(x - y) <= visibleHexVerticalRange
-  );
-}
-
 function clearCanvas(): void {
   context.resetTransform();
   context.clearRect(0, 0, displayWidth, displayHeight);
@@ -217,10 +222,9 @@ function clearCanvas(): void {
   context.translate(-camera.x, -camera.y);
 }
 
-function cameraFromCanvas(canvasPosition: Point<false>): Point<false> {
-  return mouseRelative!
-    .subCoords(displayWidth / 2, displayHeight / 2)
-    .mul(1 / zoom)
-    .sub(canvasPosition)
-    .mul(-1);
+function isHexWithinRange(hex1: Point<true>, hex2: Point<true>): boolean {
+  const { x, y } = hex1.sub(hex2);
+  return (
+    Math.abs(x + y) <= visibleHexHorizontalRange / 2 && Math.abs(x - y) <= visibleHexVerticalRange
+  );
 }
