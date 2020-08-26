@@ -2,7 +2,7 @@ import { assert } from 'devAssert';
 import { getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
-import { hexBaseWidth, hexHeight, hexWidth, isInHex, neighborHexes, Point } from 'hex';
+import { hexHeight, hexWidth, isInHex, neighborHexes, Point } from 'hex';
 
 const displayWidth = 1000;
 const displayHeight = 1000;
@@ -25,9 +25,6 @@ const dragThreshold = 5;
 const maxZoom = 1;
 const minZoom = 0.5;
 const zoomStep = (maxZoom - minZoom) / 8;
-
-const visibleHexHorizontalRange = displayWidth / minZoom / ((hexWidth + hexBaseWidth) / 2) + 2;
-const visibleHexVerticalRange = displayHeight / minZoom / hexHeight + 2;
 
 const midCanvas: Point<false> = new Point(displayWidth / 2, displayHeight / 2);
 
@@ -206,7 +203,7 @@ function cameraFromCanvas(canvasPosition: Point<false>): Point<false> {
 export function displayUpdate(): void {
   clearCanvas();
 
-  const midHex = camera.toHex().round();
+  const midHex = camera.toHex();
   for (const [draw, hex] of getDrawables()) {
     if (!hex || isHexWithinRange(hex, midHex)) {
       draw(context, hoveredHex);
@@ -223,8 +220,9 @@ function clearCanvas(): void {
 }
 
 function isHexWithinRange(hex1: Point<true>, hex2: Point<true>): boolean {
-  const { x, y } = hex1.sub(hex2);
+  const { x, y } = hex1.sub(hex2).toCanvas();
   return (
-    Math.abs(x + y) <= visibleHexHorizontalRange / 2 && Math.abs(x - y) <= visibleHexVerticalRange
+    Math.abs(x) <= (displayWidth + hexWidth) / (2 * minZoom) &&
+    Math.abs(y) <= (displayHeight + hexHeight) / (2 * minZoom)
   );
 }
