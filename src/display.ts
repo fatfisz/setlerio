@@ -117,7 +117,8 @@ function mouseInit(): void {
     }
   });
 
-  canvas.addEventListener('mousedown', () => {
+  canvas.addEventListener('mousedown', (event) => {
+    event.preventDefault();
     mouseDownRelative = mouseRelative;
     mouseDownCanvas = hoveredCanvas;
     mouseDownHex = hoveredHex;
