@@ -13,7 +13,7 @@ export class Point {
     this.y = y;
   }
 
-  add({ x, y }: Point): Point {
+  add({ x, y }: { x: number; y: number }): Point {
     return new Point(this.x + x, this.y + y);
   }
 
@@ -21,7 +21,7 @@ export class Point {
     return new Point(this.x * factor, this.y * factor);
   }
 
-  sub({ x, y }: Point): Point {
+  sub({ x, y }: { x: number; y: number }): Point {
     return new Point(this.x - x, this.y - y);
   }
 
@@ -43,15 +43,15 @@ export class Point {
     return new Point(Math.round(this.x), Math.round(this.y));
   }
 
-  equal({ x, y }: Point): boolean {
+  equal({ x, y }: { x: number; y: number }): boolean {
     return this.x === x && this.y === y;
   }
 
-  distance({ x, y }: Point): number {
+  distance({ x, y }: { x: number; y: number }): number {
     return ((this.x - x) ** 2 + (this.y - y) ** 2) ** 0.5;
   }
 
-  toArray(): [number, number] {
+  toArray(): [x: number, y: number] {
     return [this.x, this.y];
   }
 
@@ -121,7 +121,7 @@ function hexHalfSequenceIterator(radius: number): number[] {
 
 export const neighborHexes = hexRange(new Point(0, 0), 1);
 
-export function isInHex({ x, y }: Point): boolean {
+export function isInHex({ x, y }: { x: number; y: number }): boolean {
   const absX = Math.abs(x);
   const absY = Math.abs(y);
   return (
