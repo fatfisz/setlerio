@@ -83,32 +83,40 @@ export const hexVertices = [
   new Point<false>(-hexWidth / 2, 0),
 ];
 
-export const neighborHexes = [
-  new Point<true>(-1, 1),
-  new Point<true>(0, 1),
-  new Point<true>(1, 0),
-  new Point<true>(1, -1),
-  new Point<true>(0, -1),
-  new Point<true>(-1, 0),
-  new Point<true>(0, 0),
-];
+export function hexRange(radius: number, minRadius = 0): Point<true>[] {
+  if (radius === 0) {
+    return [new Point(0, 0)];
+  } else {
+    return [
+      ...hexSequenceIterator(radius).map(
+        (element, index, hexSequence) =>
+          new Point<true>(element, hexSequence[(index + radius * 2) % hexSequence.length]),
+      ),
+      ...(radius > minRadius ? hexRange(radius - 1, minRadius) : []),
+    ];
+  }
+}
 
-export const outerHexes = [
-  new Point<true>(-2, 2),
-  new Point<true>(-1, 2),
-  new Point<true>(0, 2),
-  new Point<true>(1, 1),
-  new Point<true>(2, 0),
-  new Point<true>(2, -1),
-  new Point<true>(2, -2),
-  new Point<true>(1, -2),
-  new Point<true>(0, -2),
-  new Point<true>(-1, -1),
-  new Point<true>(-2, 0),
-  new Point<true>(-2, 1),
-];
+function hexSequenceIterator(radius: number): number[] {
+  return [
+    ...hexHalfSequenceIterator(radius),
+    ...hexHalfSequenceIterator(radius).map((number) => -number),
+  ];
+}
 
-export const neighborHexesSquared = [...neighborHexes, ...outerHexes];
+function hexHalfSequenceIterator(radius: number): number[] {
+  if (radius === 0) {
+    return [];
+  }
+  return [
+    -radius,
+    -radius + 1,
+    ...hexHalfSequenceIterator(radius - 1).map((number) => number + 1),
+    radius,
+  ];
+}
+
+export const neighborHexes = hexRange(1);
 
 export function isInHex({ x, y }: Point<false>): boolean {
   const absX = Math.abs(x);
