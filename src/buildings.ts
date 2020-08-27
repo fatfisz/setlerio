@@ -75,9 +75,9 @@ function addAreaExpandingBuilding(hex: Point<true>, name: AreaExpandingBuilding)
 }
 
 function removeAreaExpandingBuilding(hex: Point<true>): void {
-  assert(buildings.has(hex.toHash()), 'The building does not exist on the map');
+  assert(() => buildings.has(hex.toHash()), 'The building does not exist on the map');
   assert(
-    ['townCenter', 'tower'].includes(buildings.get(hex.toHash())!.name),
+    () => ['townCenter', 'tower'].includes(buildings.get(hex.toHash())!.name),
     'The building does not expand the area',
   );
   setBuilding(hex, 'blank', true);
@@ -158,7 +158,7 @@ function recalculateBorder(hex: Point<true>): void {
         borderHashes.add(hash);
       } else if (!neighborInnerHashes.has(hash)) {
         assert(
-          buildings.has(hash),
+          () => buildings.has(hash),
           "The building has to exist since it's a neighbor of a deleted hex",
         );
         drawableRemove(buildings.get(hash)!.drawableHandle);

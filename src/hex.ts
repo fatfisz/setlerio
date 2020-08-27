@@ -67,11 +67,15 @@ export class Point<Hex extends boolean> {
 export function fromHash(hash: string): Point<true> {
   const commaPosition = hash.indexOf(',');
   assert(commaPosition >= 0, 'Hash should contain at least one comma');
-  const x = Number(hash.slice(0, commaPosition));
-  const y = Number(hash.slice(commaPosition + 1));
-  assert(!isNaN(x), 'The first item in the hash is not a number');
-  assert(!isNaN(y), 'The second item in the hash is not a number');
-  return new Point(x, y);
+  assert(
+    () => !isNaN(Number(hash.slice(0, commaPosition))),
+    'The first item in the hash is not a number',
+  );
+  assert(
+    () => !isNaN(Number(hash.slice(commaPosition + 1))),
+    'The second item in the hash is not a number',
+  );
+  return new Point(Number(hash.slice(0, commaPosition)), Number(hash.slice(commaPosition + 1)));
 }
 
 export const hexVertices = [
