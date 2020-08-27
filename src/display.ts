@@ -26,7 +26,7 @@ const maxZoom = 1;
 const minZoom = 0.5;
 const zoomStep = (maxZoom - minZoom) / 8;
 
-const midCanvas: Point = new Point(displayWidth / 2, displayHeight / 2);
+const midCanvas = new Point(displayWidth / 2, displayHeight / 2);
 
 export function displayInit(): void {
   useGui((gui) => {
