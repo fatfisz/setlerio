@@ -83,16 +83,19 @@ export const hexVertices = [
   new Point<false>(-hexWidth / 2, 0),
 ];
 
-export function hexRange(radius: number, minRadius = 0): Point<true>[] {
+export function hexRange(hex: Point<true>, radius: number, minRadius = 0): Point<true>[] {
   if (radius === 0) {
-    return [new Point(0, 0)];
+    return [hex];
   } else {
     return [
       ...hexSequenceIterator(radius).map(
         (element, index, hexSequence) =>
-          new Point<true>(element, hexSequence[(index + radius * 2) % hexSequence.length]),
+          new Point<true>(
+            hex.x + element,
+            hex.y + hexSequence[(index + radius * 2) % hexSequence.length],
+          ),
       ),
-      ...(radius > minRadius ? hexRange(radius - 1, minRadius) : []),
+      ...(radius > minRadius ? hexRange(hex, radius - 1, minRadius) : []),
     ];
   }
 }
@@ -116,7 +119,7 @@ function hexHalfSequenceIterator(radius: number): number[] {
   ];
 }
 
-export const neighborHexes = hexRange(1);
+export const neighborHexes = hexRange(new Point(0, 0), 1);
 
 export function isInHex({ x, y }: Point<false>): boolean {
   const absX = Math.abs(x);
