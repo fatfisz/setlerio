@@ -1,7 +1,7 @@
 export function getCanvas(
   width: number,
   height: number,
-): [HTMLCanvasElement, CanvasRenderingContext2D] {
+): [canvas: HTMLCanvasElement, context: CanvasRenderingContext2D] {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
