@@ -1,8 +1,5 @@
+import { hexBaseWidth, hexHeight, hexWidth } from 'config';
 import { assert } from 'devAssert';
-
-export const hexWidth = 160;
-export const hexHeight = hexWidth * 0.75;
-export const hexBaseWidth = hexWidth * 0.5;
 
 export class Point {
   readonly x;

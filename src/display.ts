@@ -1,11 +1,18 @@
+import {
+  displayHeight,
+  displayWidth,
+  dragThreshold,
+  hexHeight,
+  hexWidth,
+  maxZoom,
+  minZoom,
+  zoomStep,
+} from 'config';
 import { assert } from 'devAssert';
 import { getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
-import { hexHeight, hexWidth, isInHex, neighborHexes, Point } from 'hex';
-
-const displayWidth = 1000;
-const displayHeight = 1000;
+import { isInHex, neighborHexes, Point } from 'hex';
 
 const [canvas, context] = getCanvas(displayWidth, displayHeight);
 canvas.style.background = '#D6EAF8';
@@ -20,11 +27,6 @@ let mouseDownRelative: Point | undefined;
 let mouseDownCanvas: Point | undefined;
 let mouseDownHex: Point | undefined;
 let dragging: boolean;
-
-const dragThreshold = 5;
-const maxZoom = 1;
-const minZoom = 0.5;
-const zoomStep = (maxZoom - minZoom) / 8;
 
 const midCanvas = new Point(displayWidth / 2, displayHeight / 2);
 
