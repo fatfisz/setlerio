@@ -18,7 +18,7 @@ export function terrainInit(): void {
 
   function addSpecial(
     terrain: Terrain,
-    hex: Point<true>,
+    hex: Point,
     [rangeLower, rangeUpper]: readonly [number, number],
     ignoreForbiddenCheck = false,
     left = rangeLower + Math.random() * (rangeUpper - rangeLower),
@@ -53,7 +53,7 @@ export function terrainInit(): void {
   for (let y = -size; y <= size; y += 1) {
     for (let x = -size; x <= size; x += 1) {
       if ((x ** 2 + y ** 2) ** 0.5 < size) {
-        const hex = new Point<true>(x, y);
+        const hex = new Point(x, y);
         if (hashToTerrain.has(hex.toHash())) {
           continue;
         }
@@ -97,7 +97,7 @@ const terrainColor: Record<Terrain, string> = {
   desert: 'gold',
 };
 
-function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point<true> }) {
+function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point }) {
   return (context: CanvasRenderingContext2D): void => {
     context.lineJoin = 'round';
     context.lineWidth = 0.5;

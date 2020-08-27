@@ -10,15 +10,15 @@ const displayHeight = 1000;
 const [canvas, context] = getCanvas(displayWidth, displayHeight);
 canvas.style.background = '#D6EAF8';
 
-let camera = new Point<false>(0, 0);
+let camera = new Point(0, 0);
 let zoom = 1;
 
-let mouseRelative: Point<false> | undefined;
-let hoveredCanvas: Point<false> | undefined;
-let hoveredHex: Point<true> | undefined;
-let mouseDownRelative: Point<false> | undefined;
-let mouseDownCanvas: Point<false> | undefined;
-let mouseDownHex: Point<true> | undefined;
+let mouseRelative: Point | undefined;
+let hoveredCanvas: Point | undefined;
+let hoveredHex: Point | undefined;
+let mouseDownRelative: Point | undefined;
+let mouseDownCanvas: Point | undefined;
+let mouseDownHex: Point | undefined;
 let dragging: boolean;
 
 const dragThreshold = 5;
@@ -26,7 +26,7 @@ const maxZoom = 1;
 const minZoom = 0.5;
 const zoomStep = (maxZoom - minZoom) / 8;
 
-const midCanvas: Point<false> = new Point(displayWidth / 2, displayHeight / 2);
+const midCanvas: Point = new Point(displayWidth / 2, displayHeight / 2);
 
 export function displayInit(): void {
   useGui((gui) => {
@@ -165,7 +165,7 @@ function normalizeClientPosition({
 }: {
   clientX: number;
   clientY: number;
-}): Point<false> {
+}): Point {
   const { left, top, width, height } = canvas.getBoundingClientRect();
   return new Point(
     (clientX - left) * (displayWidth / width),
@@ -190,7 +190,7 @@ function calculateDerivatives(): void {
   }
 }
 
-function cameraFromCanvas(canvasPosition: Point<false>): Point<false> {
+function cameraFromCanvas(canvasPosition: Point): Point {
   assert(mouseRelative, 'mouseRelative should be defined when calculating camera from canvas');
 
   return mouseRelative
@@ -219,7 +219,7 @@ function clearCanvas(): void {
   context.translate(-camera.x, -camera.y);
 }
 
-function isHexWithinRange(hex1: Point<true>, hex2: Point<true>): boolean {
+function isHexWithinRange(hex1: Point, hex2: Point): boolean {
   const { x, y } = hex1.sub(hex2).toCanvas();
   return (
     Math.abs(x) <= (displayWidth + hexWidth) / (2 * minZoom) &&

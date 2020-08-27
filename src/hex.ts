@@ -1,57 +1,53 @@
 import { assert } from 'devAssert';
 
 export const hexWidth = 160;
-
 export const hexHeight = hexWidth * 0.75;
-
 export const hexBaseWidth = hexWidth * 0.5;
 
-export class Point<Hex extends boolean> {
+export class Point {
   readonly x;
   readonly y;
-  // An unused flag to trick TS into checking the kind of points
-  private readonly hex!: Hex;
 
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
   }
 
-  add({ x, y }: Point<Hex>): Point<Hex> {
+  add({ x, y }: Point): Point {
     return new Point(this.x + x, this.y + y);
   }
 
-  mul(factor: number): Point<Hex> {
+  mul(factor: number): Point {
     return new Point(this.x * factor, this.y * factor);
   }
 
-  sub({ x, y }: Point<Hex>): Point<Hex> {
+  sub({ x, y }: Point): Point {
     return new Point(this.x - x, this.y - y);
   }
 
-  toHex(): Point<true> {
-    return new Point<true>(
+  toHex(): Point {
+    return new Point(
       this.x / (hexBaseWidth + hexWidth) + this.y / hexHeight,
       this.x / (hexBaseWidth + hexWidth) - this.y / hexHeight,
     );
   }
 
-  toCanvas(): Point<false> {
-    return new Point<false>(
+  toCanvas(): Point {
+    return new Point(
       ((this.x + this.y) * (hexBaseWidth + hexWidth)) / 2,
       ((this.x - this.y) * hexHeight) / 2,
     );
   }
 
-  round(): Point<Hex> {
-    return new Point<Hex>(Math.round(this.x), Math.round(this.y));
+  round(): Point {
+    return new Point(Math.round(this.x), Math.round(this.y));
   }
 
-  equal({ x, y }: Point<Hex>): boolean {
+  equal({ x, y }: Point): boolean {
     return this.x === x && this.y === y;
   }
 
-  distance({ x, y }: Point<false>): number {
+  distance({ x, y }: Point): number {
     return ((this.x - x) ** 2 + (this.y - y) ** 2) ** 0.5;
   }
 
@@ -64,7 +60,7 @@ export class Point<Hex extends boolean> {
   }
 }
 
-export function fromHash(hash: string): Point<true> {
+export function fromHash(hash: string): Point {
   const commaPosition = hash.indexOf(',');
   assert(commaPosition >= 0, 'Hash should contain at least one comma');
   assert(
@@ -79,22 +75,22 @@ export function fromHash(hash: string): Point<true> {
 }
 
 export const hexVertices = [
-  new Point<false>(-hexBaseWidth / 2, -hexHeight / 2),
-  new Point<false>(hexBaseWidth / 2, -hexHeight / 2),
-  new Point<false>(hexWidth / 2, 0),
-  new Point<false>(hexBaseWidth / 2, hexHeight / 2),
-  new Point<false>(-hexBaseWidth / 2, hexHeight / 2),
-  new Point<false>(-hexWidth / 2, 0),
+  new Point(-hexBaseWidth / 2, -hexHeight / 2),
+  new Point(hexBaseWidth / 2, -hexHeight / 2),
+  new Point(hexWidth / 2, 0),
+  new Point(hexBaseWidth / 2, hexHeight / 2),
+  new Point(-hexBaseWidth / 2, hexHeight / 2),
+  new Point(-hexWidth / 2, 0),
 ];
 
-export function hexRange(hex: Point<true>, radius: number, minRadius = 0): Point<true>[] {
+export function hexRange(hex: Point, radius: number, minRadius = 0): Point[] {
   if (radius === 0) {
     return [hex];
   } else {
     return [
       ...hexSequenceIterator(radius).map(
         (element, index, hexSequence) =>
-          new Point<true>(
+          new Point(
             hex.x + element,
             hex.y + hexSequence[(index + radius * 2) % hexSequence.length],
           ),
@@ -125,7 +121,7 @@ function hexHalfSequenceIterator(radius: number): number[] {
 
 export const neighborHexes = hexRange(new Point(0, 0), 1);
 
-export function isInHex({ x, y }: Point<false>): boolean {
+export function isInHex({ x, y }: Point): boolean {
   const absX = Math.abs(x);
   const absY = Math.abs(y);
   return (

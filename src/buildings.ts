@@ -11,7 +11,7 @@ type AreaExpandingBuilding = 'townCenter' | 'tower';
 
 interface BuildingInfo {
   name: BuildingName;
-  hex: Point<true>;
+  hex: Point;
   drawableHandle: number;
 }
 
@@ -69,12 +69,12 @@ export function buildingsInit(): void {
   removeAreaExpandingBuilding(new Point(2, -2));
 }
 
-function addAreaExpandingBuilding(hex: Point<true>, name: AreaExpandingBuilding): void {
+function addAreaExpandingBuilding(hex: Point, name: AreaExpandingBuilding): void {
   setBuilding(hex, name, true);
   recalculateBorder(hex);
 }
 
-function removeAreaExpandingBuilding(hex: Point<true>): void {
+function removeAreaExpandingBuilding(hex: Point): void {
   assert(() => buildings.has(hex.toHash()), 'The building does not exist on the map');
   assert(
     () => ['townCenter', 'tower'].includes(buildings.get(hex.toHash())!.name),
@@ -84,7 +84,7 @@ function removeAreaExpandingBuilding(hex: Point<true>): void {
   recalculateBorder(hex);
 }
 
-function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): void {
+function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
   const hash = hex.toHash();
   if (buildings.has(hash)) {
     if (!overwrite) {
@@ -105,7 +105,7 @@ function setBuilding(hex: Point<true>, name: BuildingName, overwrite: boolean): 
   });
 }
 
-function recalculateBorder(hex: Point<true>): void {
+function recalculateBorder(hex: Point): void {
   const neighborBorderHashes = new Set<string>();
   const neighborInnerHashes = new Set<string>();
   const add = buildings.get(hex.toHash())!.name !== 'blank';
@@ -198,8 +198,8 @@ function build(name: BuildingName): void {
   }
 }
 
-function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
-  return (context: CanvasRenderingContext2D, hoveredHex: Point<true> | undefined): void => {
+function drawHex({ name, hex }: { name: string; hex: Point }) {
+  return (context: CanvasRenderingContext2D, hoveredHex: Point | undefined): void => {
     const relativeMid = hex.toCanvas();
 
     if (hoveredHex && hex.equal(hoveredHex)) {
@@ -219,7 +219,7 @@ function drawHex({ name, hex }: { name: string; hex: Point<true> }) {
     const text = getTextImage(name, [0, 0, 0]);
     context.drawImage(
       text,
-      ...relativeMid.add(new Point<false>(text.width, text.height).mul(-1.5)).round().toArray(),
+      ...relativeMid.add(new Point(text.width, text.height).mul(-1.5)).round().toArray(),
       text.width * 3,
       text.height * 3,
     );
