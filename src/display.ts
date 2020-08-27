@@ -59,7 +59,6 @@ export function displayInit(): void {
     };
 
     const display = gui.addFolder('display');
-    display.open();
     display.add(displayState, 'cameraX');
     display.add(displayState, 'cameraY');
     display.add(displayState, 'zoom');
