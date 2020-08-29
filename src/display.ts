@@ -1,3 +1,4 @@
+import { getBuildingOptions } from 'buildings';
 import {
   displayHeight,
   displayWidth,
@@ -12,6 +13,7 @@ import { getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
 import { isInHex, neighborHexes, Point } from 'hex';
+import { menuClose, menuIsOpen, menuOpen, menuTryClickOption } from 'menu';
 
 interface Mouse {
   relative: Point;
@@ -27,7 +29,9 @@ let zoom = 1;
 
 let mouse: Mouse | undefined;
 let mouseDown: Mouse | undefined;
-let dragging: boolean;
+let menuHex: Point | undefined;
+let dragging = false;
+let preventMenuOpen = false;
 
 const midCanvas = new Point(displayWidth / 2, displayHeight / 2);
 
@@ -98,12 +102,14 @@ function mouseInit(): void {
   });
 
   canvas.addEventListener('wheel', ({ deltaY }) => {
-    if (!mouse) {
-      // There's no relative point for the zoom
-      return;
+    if (menuHex) {
+      menuClose();
+      menuHex = undefined;
     }
-    zoom = Math.max(minZoom, Math.min(maxZoom, zoom - Math.sign(deltaY) * zoomStep));
-    camera = cameraFromCanvas(mouse.relative, mouse.canvas);
+    if (mouse) {
+      zoom = Math.max(minZoom, Math.min(maxZoom, zoom - Math.sign(deltaY) * zoomStep));
+      camera = cameraFromCanvas(mouse.relative, mouse.canvas);
+    }
   });
 
   canvas.addEventListener('mouseout', () => {
@@ -114,13 +120,31 @@ function mouseInit(): void {
 
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault();
+    mouse = getMouse(fromEvent(event));
+    if (menuHex) {
+      if (menuTryClickOption(mouse.relative)) {
+        preventMenuOpen = true;
+        if (!menuIsOpen()) {
+          menuHex = undefined;
+        }
+        return;
+      }
+      if (menuHex.equal(mouse.hex)) {
+        preventMenuOpen = true;
+      }
+      menuHex = undefined;
+    }
     mouseDown = mouse;
   });
 
   canvas.addEventListener('mouseup', (event) => {
     mouse = getMouse(fromEvent(event));
-    if (!dragging && mouseDown && mouseDown.hex.equal(mouse.hex)) {
-      console.log('clicked!');
+    if (!dragging && !preventMenuOpen && mouseDown && mouseDown.hex.equal(mouse.hex)) {
+      const options = getBuildingOptions(mouseDown.hex);
+      if (options) {
+        menuHex = mouseDown.hex;
+        menuOpen(options, mouseDown.relative);
+      }
     }
   });
 
@@ -136,12 +160,14 @@ function mouseInit(): void {
     }
     mouseDown = undefined;
     dragging = false;
+    preventMenuOpen = false;
   });
 
   document.addEventListener('visibilitychange', () => {
     mouse = undefined;
     mouseDown = undefined;
     dragging = false;
+    preventMenuOpen = false;
   });
 }
 
@@ -212,5 +238,5 @@ function isHexWithinRange(hex1: Point, hex2: Point): boolean {
 }
 
 export function getHighlightedHex(): Point | undefined {
-  return mouse?.hex;
+  return menuHex ?? mouse?.hex;
 }

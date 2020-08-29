@@ -2,6 +2,8 @@ import { Point } from 'hex';
 
 type Drawable = [draw: (context: CanvasRenderingContext2D) => void, hex?: Point];
 
+export const drawableNoopHandle = -1;
+
 let lastHandle = 0;
 
 const drawables = new Map<number, Drawable>();

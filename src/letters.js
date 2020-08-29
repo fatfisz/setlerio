@@ -375,6 +375,14 @@ module.exports = {
 
 
   `,
+  '>': letter(3)`
+.
+ .
+  .
+ .
+.
+
+  `,
 };
 
 function letter(width) {

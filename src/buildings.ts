@@ -4,6 +4,7 @@ import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
+import { MenuOption } from 'menu';
 import { Requirements } from 'resources';
 import { drawText } from 'text';
 
@@ -169,6 +170,26 @@ function recalculateBorder(hex: Point): void {
       }
     }
   }
+}
+
+export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
+  const hash = hex.toHash();
+  if (!buildings.has(hash)) {
+    return;
+  }
+  return [
+    [
+      'build',
+      [
+        [
+          'tower',
+          (): void => {
+            console.log('tower');
+          },
+        ],
+      ],
+    ],
+  ];
 }
 
 function drawBuilding({ name, hex }: { name: string; hex: Point }) {
