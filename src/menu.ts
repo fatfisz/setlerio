@@ -6,7 +6,7 @@ import { drawText } from 'text';
 
 export type MenuOption = [text: string, actionOrOptions: (() => void) | MenuOption[]];
 
-const optionWidth = 192;
+const optionWidth = 256;
 const optionHeight = 48;
 const padding = 16;
 const maxOptions = 5;

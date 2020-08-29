@@ -10,7 +10,7 @@ import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
-import { Requirements } from 'resources';
+import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
 import { drawText } from 'text';
 import { toastAdd } from 'toast';
 
@@ -68,25 +68,30 @@ export function buildingsInit(): void {
     duration: Infinity,
   });
 
-  addAreaExpandingBuilding(new Point(0, 0), 'townCenter');
-  addAreaExpandingBuilding(new Point(2, -2), 'tower');
-  addAreaExpandingBuilding(new Point(3, -1), 'tower');
-  removeAreaExpandingBuilding(new Point(2, -2));
+  addBuilding(new Point(0, 0), 'townCenter');
+  addBuilding(new Point(2, -2), 'tower');
+  addBuilding(new Point(3, -1), 'tower');
+  removeBuilding(new Point(2, -2));
 }
 
-function addAreaExpandingBuilding(hex: Point, name: AreaExpandingBuilding): void {
+function addBuilding(hex: Point, name: BuildingName): void {
   setBuilding(hex, name, true);
-  recalculateBorder(hex);
+  if (isAreaExpandingBuilding(name)) {
+    recalculateBorder(hex);
+  }
 }
 
-function removeAreaExpandingBuilding(hex: Point): void {
+function removeBuilding(hex: Point): void {
   assert(() => buildings.has(hex.toHash()), 'The building does not exist on the map');
-  assert(
-    () => ['townCenter', 'tower'].includes(buildings.get(hex.toHash())!.name),
-    'The building does not expand the area',
-  );
+  const { name } = buildings.get(hex.toHash())!;
   setBuilding(hex, 'blank', true);
-  recalculateBorder(hex);
+  if (isAreaExpandingBuilding(name)) {
+    recalculateBorder(hex);
+  }
+}
+
+function isAreaExpandingBuilding(name: BuildingName): name is AreaExpandingBuilding {
+  return name === 'townCenter' || name === 'tower';
 }
 
 function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
@@ -119,7 +124,7 @@ function recalculateBorder(hex: Point): void {
   if (add) {
     for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
       const building = buildings.get(farNeighborHex.toHash());
-      if (building && (building.name === 'townCenter' || building.name === 'tower')) {
+      if (building && isAreaExpandingBuilding(building.name)) {
         for (const neighborHex of hexRange(building.hex, areaExpandRadius - 1)) {
           neighborInnerHashes.add(neighborHex.toHash());
         }
@@ -144,7 +149,7 @@ function recalculateBorder(hex: Point): void {
   } else {
     for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
       const building = buildings.get(farNeighborHex.toHash());
-      if (building && (building.name === 'townCenter' || building.name === 'tower')) {
+      if (building && isAreaExpandingBuilding(building.name)) {
         for (const neighborHex of hexRange(building.hex, areaExpandRadius, areaExpandRadius)) {
           neighborBorderHashes.add(neighborHex.toHash());
         }
@@ -185,15 +190,22 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
     [
       'build',
       [
-        [
-          'tower',
-          (): void => {
-            toastAdd('tower');
-          },
-        ],
+        [buildingDefs.lumberjackHut.name, (): void => build(hex, 'lumberjackHut')],
+        [buildingDefs.tower.name, (): void => build(hex, 'tower')],
       ],
     ],
   ];
+}
+
+function build(hex: Point, name: BuildingName): void {
+  const building = buildingDefs[name];
+  const missingResourceInfo = getMissingResourceInfo(building.requirements);
+  if (missingResourceInfo) {
+    toastAdd(missingResourceInfo);
+  } else {
+    addBuilding(hex, name);
+    deduceResources(building.requirements);
+  }
 }
 
 function drawBuilding({ name, hex }: { name: string; hex: Point }) {

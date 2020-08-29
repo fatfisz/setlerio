@@ -11,7 +11,7 @@ interface Toast {
   opacity: number;
 }
 
-const toastWidth = 256;
+const toastWidth = 448;
 const toastHeight = 64;
 const padding = 24;
 const animationTime = 100;

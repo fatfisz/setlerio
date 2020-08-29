@@ -28,10 +28,14 @@ export function resourcesInit(): void {
   });
 }
 
-export function getMissingResourceInfo(requirements: Requirements): string[] {
-  return requirements
+export function getMissingResourceInfo(requirements: Requirements): string | undefined {
+  const missing = requirements
     .filter(([name, count]) => count > resources[name])
-    .map(([name]) => `Not enough ${name}`);
+    .map(([name, count]) => `${count - resources[name]} ${name}`);
+
+  if (missing.length > 0) {
+    return `missing: ${missing.join(', ')}`;
+  }
 }
 
 export function deduceResources(requirements: Requirements): void {
