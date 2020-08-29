@@ -9,7 +9,7 @@ import {
   minZoom,
   zoomStep,
 } from 'config';
-import { getDrawables } from 'drawables';
+import { drawableMaxPriority, getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
 import { isInHex, neighborHexes, Point } from 'hex';
@@ -213,9 +213,17 @@ function cameraFromCanvas(mouseRelative: Point, canvasPosition: Point): Point {
 export function displayUpdate(): void {
   clearCanvas();
 
+  const drawGroupedByPriority = Array.from({ length: drawableMaxPriority }, (): ((
+    context: CanvasRenderingContext2D,
+  ) => void)[] => []);
   const midHex = camera.toHex();
-  for (const [draw, hex] of getDrawables()) {
+  for (const [priority, draw, hex] of getDrawables()) {
     if (!hex || isHexWithinRange(hex, midHex)) {
+      drawGroupedByPriority[priority].push(draw);
+    }
+  }
+  for (const drawGroup of drawGroupedByPriority) {
+    for (const draw of drawGroup) {
       draw(context);
     }
   }

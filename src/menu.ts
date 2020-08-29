@@ -1,6 +1,6 @@
 import { displayHeight, displayWidth } from 'config';
 import { useResetTransform } from 'display';
-import { drawableNoopHandle, drawablePush, drawableRemove } from 'drawables';
+import { drawableNoopHandle, drawablePriorityMenu, drawablePush, drawableRemove } from 'drawables';
 import { Point } from 'hex';
 import { drawText } from 'text';
 
@@ -34,7 +34,7 @@ export function menuOpen(options: MenuOption[], mouseRelative = lastMouseRelativ
   menuClose();
 
   isOpen = true;
-  menuHandle = drawablePush(drawMenu);
+  menuHandle = drawablePush(drawablePriorityMenu, drawMenu);
 
   const widthWithPadding = padding * 2 + optionWidth;
   const height = options.length * optionHeight;

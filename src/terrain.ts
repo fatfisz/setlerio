@@ -1,4 +1,4 @@
-import { drawablePush } from 'drawables';
+import { drawablePriorityTerrain, drawablePush } from 'drawables';
 import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 
 type Terrain = 'meadow' | 'forest' | 'mountains' | 'desert';
@@ -81,6 +81,7 @@ export function terrainInit(): void {
   for (const [hash, terrain] of hashToTerrain.entries()) {
     const hex = fromHash(hash);
     drawablePush(
+      drawablePriorityTerrain,
       drawTerrain({
         terrain,
         hex,

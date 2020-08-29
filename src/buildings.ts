@@ -1,6 +1,11 @@
 import { assert } from 'devAssert';
 import { getHighlightedHex } from 'display';
-import { drawablePush, drawableRemove } from 'drawables';
+import {
+  drawablePriorityBorder,
+  drawablePriorityBuildings,
+  drawablePush,
+  drawableRemove,
+} from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
@@ -56,7 +61,7 @@ let borderEstabilished = false;
 
 export function buildingsInit(): void {
   if (!borderEstabilished) {
-    drawablePush(drawBorder);
+    drawablePush(drawablePriorityBorder, drawBorder);
     eventQueuePush({
       run: animateBorder,
       duration: Infinity,
@@ -98,6 +103,7 @@ function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
     name,
     hex,
     drawableHandle: drawablePush(
+      drawablePriorityBuildings,
       drawBuilding({
         name: buildingDefs[name].name,
         hex,
