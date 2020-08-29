@@ -9,7 +9,30 @@ const letterHeight = 6;
 const letterSpacing = 1;
 const lineSpacing = 3;
 
-export function getTextImage(text: string, color: ColorChannels): HTMLCanvasElement {
+export function drawText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  color: ColorChannels,
+  x: number,
+  y: number,
+  horizontalMod = 0,
+  verticalMod = 0,
+  scale = 3,
+): void {
+  const scaledImage = useImageCache([text, color, scale], () => {
+    const textImage = getTextImage(text, color);
+    const [canvas, context] = getCanvas(textImage.width * scale, textImage.height * scale);
+    context.drawImage(textImage, 0, 0, textImage.width * scale, textImage.height * scale);
+    return canvas;
+  });
+  context.drawImage(
+    scaledImage,
+    x - scaledImage.width * horizontalMod,
+    y - scaledImage.height * verticalMod,
+  );
+}
+
+function getTextImage(text: string, color: ColorChannels): HTMLCanvasElement {
   return useImageCache(['text', text, color], () => {
     if (process.env.NODE_ENV !== 'production') {
       for (const letter of text) {

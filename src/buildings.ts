@@ -4,7 +4,7 @@ import { eventQueuePush } from 'eventQueue';
 import { fps, getNextFrame } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
-import { getTextImage } from 'text';
+import { drawText } from 'text';
 
 type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
 type AreaExpandingBuilding = 'townCenter' | 'tower';
@@ -216,13 +216,7 @@ function drawHex({ name, hex }: { name: string; hex: Point }) {
       context.fill();
     }
 
-    const text = getTextImage(name, [0, 0, 0]);
-    context.drawImage(
-      text,
-      ...relativeMid.add(new Point(text.width, text.height).mul(-1.5)).round().toArray(),
-      text.width * 3,
-      text.height * 3,
-    );
+    drawText(context, name, [0, 0, 0], ...relativeMid.toArray(), 0.5, 0.5);
   };
 }
 

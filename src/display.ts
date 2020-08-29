@@ -14,7 +14,7 @@ import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
 import { isInHex, neighborHexes, Point } from 'hex';
 
-const [canvas, context] = getCanvas(displayWidth, displayHeight);
+const [canvas, context] = getCanvas(displayWidth, displayHeight, true);
 canvas.style.background = '#D6EAF8';
 
 let camera = new Point(0, 0);
