@@ -1,8 +1,7 @@
 import { displayHeight, displayWidth } from 'config';
 import { useResetTransform } from 'display';
 import { drawablePriorityToasts, drawablePush } from 'drawables';
-import { eventQueuePush } from 'eventQueue';
-import { Run } from 'gameEvent';
+import { eventQueuePush, Run } from 'eventQueue';
 import { drawText } from 'text';
 
 interface Toast {
