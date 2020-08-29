@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 
-let gui: GUI | undefined = undefined;
+let gui: GUI | undefined;
 
 export function updateGui(): void {
   useGui((gui) => {

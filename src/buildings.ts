@@ -1,4 +1,4 @@
-import { assert } from 'devAssert';
+import { assert, assertRanOnce } from 'devAssert';
 import { getHighlightedHex } from 'display';
 import {
   drawablePriorityBorder,
@@ -58,19 +58,16 @@ const areaExpandRadius = 2;
 const buildings = new Map<string, BuildingInfo>();
 const buildingsToDestroy = new Set<string>();
 const borderHashes = new Set<string>();
-let borderEstabilished = false;
 
 export function buildingsInit(): void {
-  if (!borderEstabilished) {
-    drawablePush(drawablePriorityBorder, drawBorder);
-    eventQueuePush({
-      run: animateBorder,
-      duration: Infinity,
-    });
-    borderEstabilished = true;
-  }
+  assertRanOnce('buildingsInit');
 
-  buildings.clear();
+  drawablePush(drawablePriorityBorder, drawBorder);
+  eventQueuePush({
+    run: animateBorder,
+    duration: Infinity,
+  });
+
   addAreaExpandingBuilding(new Point(0, 0), 'townCenter');
   addAreaExpandingBuilding(new Point(2, -2), 'tower');
   addAreaExpandingBuilding(new Point(3, -1), 'tower');

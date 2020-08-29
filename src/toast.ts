@@ -1,4 +1,5 @@
 import { displayHeight, displayWidth } from 'config';
+import { assertRanOnce } from 'devAssert';
 import { useResetTransform } from 'display';
 import { drawablePriorityToasts, drawablePush } from 'drawables';
 import { eventQueuePush, Run } from 'eventQueue';
@@ -17,13 +18,11 @@ const animationTime = 100;
 const visibleTime = 7500;
 
 const toasts = new Set<Toast>();
-let initialized = false;
 
 export function toastInit(): void {
-  if (!initialized) {
-    drawablePush(drawablePriorityToasts, drawToasts);
-    initialized = true;
-  }
+  assertRanOnce('toastInit');
+
+  drawablePush(drawablePriorityToasts, drawToasts);
 }
 
 export function toastAdd(text: string): void {

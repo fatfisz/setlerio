@@ -9,6 +9,7 @@ import {
   minZoom,
   zoomStep,
 } from 'config';
+import { assertRanOnce } from 'devAssert';
 import { drawableMaxPriority, getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
@@ -36,6 +37,8 @@ let preventMenuOpen = false;
 const midCanvas = new Point(displayWidth / 2, displayHeight / 2);
 
 export function displayInit(): void {
+  assertRanOnce('displayInit');
+
   useGui((gui) => {
     const displayState = {
       get cameraX(): number {

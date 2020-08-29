@@ -1,4 +1,4 @@
-import { assert } from 'devAssert';
+import { assert, assertRanOnce } from 'devAssert';
 import { useGui } from 'gui';
 
 type ResourceName = 'food' | 'wood' | 'stone' | 'iron' | 'gold';
@@ -14,6 +14,8 @@ const resources: Record<ResourceName, number> = {
 };
 
 export function resourcesInit(): void {
+  assertRanOnce('resourcesInit');
+
   useGui((gui) => {
     gui.open();
     const folder = gui.addFolder('resources');

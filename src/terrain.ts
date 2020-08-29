@@ -1,3 +1,4 @@
+import { assertRanOnce } from 'devAssert';
 import { drawablePriorityTerrain, drawablePush } from 'drawables';
 import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 
@@ -11,6 +12,8 @@ const desertRange = [1, 2] as const;
 const mountainRange = [3, 5] as const;
 
 export function terrainInit(): void {
+  assertRanOnce('terrainInit');
+
   const hashToTerrain = new Map<string, Terrain>();
   const specialForbidden = new Set<string>(
     neighborHexes.map((neighborHex) => neighborHex.toHash()),
