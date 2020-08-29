@@ -1,4 +1,5 @@
 import { displayHeight, displayWidth } from 'config';
+import { useResetTransform } from 'display';
 import { drawableNoopHandle, drawablePush, drawableRemove } from 'drawables';
 import { Point } from 'hex';
 import { drawText } from 'text';
@@ -57,42 +58,39 @@ export function menuOpen(options: MenuOption[], mouseRelative = lastMouseRelativ
 }
 
 function drawMenu(context: CanvasRenderingContext2D): void {
-  context.save();
-  context.resetTransform();
+  useResetTransform(() => {
+    context.fillStyle = 'white';
 
-  context.fillStyle = 'white';
-
-  context.fillRect(
-    menuBoundingRect.left,
-    menuBoundingRect.top,
-    optionWidth,
-    menuBoundingRect.height,
-  );
-
-  for (const [index, [text, actionOrOptions]] of lastOptions.entries()) {
-    drawText(
-      context,
-      text,
-      [0, 0, 0],
-      menuBoundingRect.left + padding,
-      menuBoundingRect.top + (index + 0.5) * optionHeight,
-      0,
-      0.5,
+    context.fillRect(
+      menuBoundingRect.left,
+      menuBoundingRect.top,
+      optionWidth,
+      menuBoundingRect.height,
     );
-    if (Array.isArray(actionOrOptions)) {
+
+    for (const [index, [text, actionOrOptions]] of lastOptions.entries()) {
       drawText(
         context,
-        '>',
+        text,
         [0, 0, 0],
-        menuBoundingRect.left + optionWidth - padding,
+        menuBoundingRect.left + padding,
         menuBoundingRect.top + (index + 0.5) * optionHeight,
-        1,
+        0,
         0.5,
       );
+      if (Array.isArray(actionOrOptions)) {
+        drawText(
+          context,
+          '>',
+          [0, 0, 0],
+          menuBoundingRect.left + optionWidth - padding,
+          menuBoundingRect.top + (index + 0.5) * optionHeight,
+          1,
+          0.5,
+        );
+      }
     }
-  }
-
-  context.restore();
+  });
 }
 
 export function menuTryClickOption(mouseRelative: Point): boolean {

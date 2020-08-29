@@ -240,3 +240,10 @@ function isHexWithinRange(hex1: Point, hex2: Point): boolean {
 export function getHighlightedHex(): Point | undefined {
   return menuHex ?? mouse?.hex;
 }
+
+export function useResetTransform(draw: () => void): void {
+  context.save();
+  context.resetTransform();
+  draw();
+  context.restore();
+}
