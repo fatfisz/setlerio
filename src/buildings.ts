@@ -96,7 +96,7 @@ function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
     name,
     hex,
     drawableHandle: drawablePush(
-      drawHex({
+      drawBuilding({
         name: buildingDefs[name].name,
         hex,
       }),
@@ -198,7 +198,7 @@ function build(name: BuildingName): void {
   }
 }
 
-function drawHex({ name, hex }: { name: string; hex: Point }) {
+function drawBuilding({ name, hex }: { name: string; hex: Point }) {
   return (context: CanvasRenderingContext2D, hoveredHex: Point | undefined): void => {
     const relativeMid = hex.toCanvas();
 
