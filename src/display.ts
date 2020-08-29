@@ -8,11 +8,16 @@ import {
   minZoom,
   zoomStep,
 } from 'config';
-import { assert } from 'devAssert';
 import { getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
 import { isInHex, neighborHexes, Point } from 'hex';
+
+interface Mouse {
+  relative: Point;
+  canvas: Point;
+  hex: Point;
+}
 
 const [canvas, context] = getCanvas(displayWidth, displayHeight, true);
 canvas.style.background = '#D6EAF8';
@@ -20,12 +25,8 @@ canvas.style.background = '#D6EAF8';
 let camera = new Point(0, 0);
 let zoom = 1;
 
-let mouseRelative: Point | undefined;
-let hoveredCanvas: Point | undefined;
-let hoveredHex: Point | undefined;
-let mouseDownRelative: Point | undefined;
-let mouseDownCanvas: Point | undefined;
-let mouseDownHex: Point | undefined;
+let mouse: Mouse | undefined;
+let mouseDown: Mouse | undefined;
 let dragging: boolean;
 
 const midCanvas = new Point(displayWidth / 2, displayHeight / 2);
@@ -43,16 +44,16 @@ export function displayInit(): void {
         return zoom;
       },
       get canvasX(): number | string {
-        return hoveredCanvas?.x ?? '';
+        return mouse?.canvas.x ?? '';
       },
       get canvasY(): number | string {
-        return hoveredCanvas?.y ?? '';
+        return mouse?.canvas.y ?? '';
       },
       get hexX(): number | string {
-        return hoveredHex?.x ?? '';
+        return mouse?.hex.x ?? '';
       },
       get hexY(): number | string {
-        return hoveredHex?.y ?? '';
+        return mouse?.hex.y ?? '';
       },
       reset(): void {
         camera = new Point(0, 0);
@@ -76,24 +77,19 @@ export function displayInit(): void {
 
 function mouseInit(): void {
   canvas.addEventListener('mousemove', (event) => {
-    mouseRelative = normalizeClientPosition(event);
-    calculateDerivatives();
+    mouse = getMouse(fromEvent(event));
   });
 
   document.addEventListener('mousemove', (event) => {
-    if (mouseDownCanvas) {
-      mouseRelative = normalizeClientPosition(event);
-      assert(
-        mouseDownRelative,
-        'mouseDownRelative should be defined if mouseDownCanvas is defined',
-      );
-      if (!dragging && mouseDownRelative.distance(mouseRelative) > dragThreshold) {
+    if (mouseDown) {
+      mouse = getMouse(fromEvent(event));
+      if (!dragging && mouseDown.relative.distance(mouse.relative) > dragThreshold) {
         dragging = true;
       }
       if (dragging) {
-        camera = cameraFromCanvas(mouseDownCanvas);
+        camera = cameraFromCanvas(mouse.relative, mouseDown.canvas);
+        mouse = getMouse(fromEvent(event));
       }
-      calculateDerivatives();
     }
   });
 
@@ -102,72 +98,54 @@ function mouseInit(): void {
   });
 
   canvas.addEventListener('wheel', ({ deltaY }) => {
-    if (!hoveredCanvas) {
+    if (!mouse) {
       // There's no relative point for the zoom
       return;
     }
     zoom = Math.max(minZoom, Math.min(maxZoom, zoom - Math.sign(deltaY) * zoomStep));
-    camera = cameraFromCanvas(hoveredCanvas);
+    camera = cameraFromCanvas(mouse.relative, mouse.canvas);
   });
 
   canvas.addEventListener('mouseout', () => {
     if (!dragging) {
-      mouseRelative = undefined;
-      hoveredCanvas = undefined;
-      hoveredHex = undefined;
+      mouse = undefined;
     }
   });
 
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault();
-    mouseDownRelative = mouseRelative;
-    mouseDownCanvas = hoveredCanvas;
-    mouseDownHex = hoveredHex;
+    mouseDown = mouse;
   });
 
-  canvas.addEventListener('mouseup', () => {
-    if (!dragging && mouseDownHex && mouseDownHex.equal(hoveredHex)) {
+  canvas.addEventListener('mouseup', (event) => {
+    mouse = getMouse(fromEvent(event));
+    if (!dragging && mouseDown && mouseDown.hex.equal(mouse.hex)) {
       console.log('clicked!');
     }
   });
 
   document.addEventListener('mouseup', () => {
     if (
-      mouseRelative &&
-      (mouseRelative.x < 0 ||
-        mouseRelative.y < 0 ||
-        mouseRelative.x > displayWidth ||
-        mouseRelative.y > displayHeight)
+      mouse &&
+      (mouse.relative.x < 0 ||
+        mouse.relative.y < 0 ||
+        mouse.relative.x > displayWidth ||
+        mouse.relative.y > displayHeight)
     ) {
-      mouseRelative = undefined;
-      hoveredCanvas = undefined;
-      hoveredHex = undefined;
+      mouse = undefined;
     }
-
-    mouseDownRelative = undefined;
-    mouseDownCanvas = undefined;
-    mouseDownHex = undefined;
+    mouseDown = undefined;
     dragging = false;
   });
 
   document.addEventListener('visibilitychange', () => {
-    mouseRelative = undefined;
-    hoveredCanvas = undefined;
-    hoveredHex = undefined;
-    mouseDownRelative = undefined;
-    mouseDownCanvas = undefined;
-    mouseDownHex = undefined;
+    mouse = undefined;
+    mouseDown = undefined;
     dragging = false;
   });
 }
 
-function normalizeClientPosition({
-  clientX,
-  clientY,
-}: {
-  clientX: number;
-  clientY: number;
-}): Point {
+function fromEvent({ clientX, clientY }: { clientX: number; clientY: number }): Point {
   const { left, top, width, height } = canvas.getBoundingClientRect();
   return new Point(
     (clientX - left) * (displayWidth / width),
@@ -175,26 +153,30 @@ function normalizeClientPosition({
   );
 }
 
-function calculateDerivatives(): void {
-  assert(mouseRelative, 'mouseRelative should be defined when calculating the derivatives');
-
-  hoveredCanvas = mouseRelative
+function getMouse(relative: Point): Mouse {
+  const canvas = relative
     .sub(midCanvas)
     .mul(1 / zoom)
     .add(camera);
 
-  const absoluteProbableMid = hoveredCanvas.toHex().round().toCanvas();
+  const mouse: Mouse = {
+    relative,
+    canvas,
+    hex: new Point(0, 0),
+  };
+
+  const absoluteProbableMid = canvas.toHex().round().toCanvas();
   for (const neighborHex of neighborHexes) {
     const absoluteNeighbor = absoluteProbableMid.add(neighborHex.toCanvas());
-    if (isInHex(hoveredCanvas.sub(absoluteNeighbor))) {
-      hoveredHex = absoluteNeighbor.toHex();
+    if (isInHex(canvas.sub(absoluteNeighbor))) {
+      mouse.hex = absoluteNeighbor.toHex();
     }
   }
+
+  return mouse;
 }
 
-function cameraFromCanvas(canvasPosition: Point): Point {
-  assert(mouseRelative, 'mouseRelative should be defined when calculating camera from canvas');
-
+function cameraFromCanvas(mouseRelative: Point, canvasPosition: Point): Point {
   return mouseRelative
     .sub(midCanvas)
     .mul(1 / zoom)
@@ -230,5 +212,5 @@ function isHexWithinRange(hex1: Point, hex2: Point): boolean {
 }
 
 export function getHighlightedHex(): Point | undefined {
-  return hoveredHex;
+  return mouse?.hex;
 }
