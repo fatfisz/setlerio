@@ -2,9 +2,9 @@ import { assert } from 'devAssert';
 import { getHighlightedHex } from 'display';
 import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
-import { fps, getNextFrame } from 'frame';
+import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
-import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
+import { Requirements } from 'resources';
 import { drawText } from 'text';
 
 type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
@@ -168,34 +168,6 @@ function recalculateBorder(hex: Point): void {
         borderHashes.delete(hash);
       }
     }
-  }
-}
-
-export function addBuildingButton(name: BuildingName): void {
-  const button = document.createElement('button');
-  button.textContent = `Build ${buildingDefs[name].name}`;
-  button.addEventListener('click', () => {
-    build(name);
-  });
-  document.body.append(button);
-}
-
-function build(name: BuildingName): void {
-  const building = buildingDefs[name];
-  const missingResourceInfo = getMissingResourceInfo(building.requirements);
-
-  if (missingResourceInfo.length > 0) {
-    const pre = document.createElement('pre');
-    pre.textContent = missingResourceInfo.join('\n');
-    document.body.append(pre);
-    eventQueuePush({
-      frame: getNextFrame(5000),
-      run: () => {
-        document.body.removeChild(pre);
-      },
-    });
-  } else {
-    deduceResources(building.requirements);
   }
 }
 
