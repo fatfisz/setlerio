@@ -40,8 +40,8 @@ export class Point {
     return new Point(Math.round(this.x), Math.round(this.y));
   }
 
-  equal({ x, y }: { x: number; y: number }): boolean {
-    return this.x === x && this.y === y;
+  equal(hex: { x: number; y: number } | undefined): boolean {
+    return Boolean(hex && this.x === hex.x && this.y === hex.y);
   }
 
   distance({ x, y }: { x: number; y: number }): number {

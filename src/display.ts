@@ -126,7 +126,7 @@ function mouseInit(): void {
   });
 
   canvas.addEventListener('mouseup', () => {
-    if (!dragging && mouseDownHex && hoveredHex && mouseDownHex.equal(hoveredHex)) {
+    if (!dragging && mouseDownHex && mouseDownHex.equal(hoveredHex)) {
       console.log('clicked!');
     }
   });
@@ -208,7 +208,7 @@ export function displayUpdate(): void {
   const midHex = camera.toHex();
   for (const [draw, hex] of getDrawables()) {
     if (!hex || isHexWithinRange(hex, midHex)) {
-      draw(context, hoveredHex);
+      draw(context);
     }
   }
 }
@@ -227,4 +227,8 @@ function isHexWithinRange(hex1: Point, hex2: Point): boolean {
     Math.abs(x) <= (displayWidth + hexWidth) / (2 * minZoom) &&
     Math.abs(y) <= (displayHeight + hexHeight) / (2 * minZoom)
   );
+}
+
+export function getHighlightedHex(): Point | undefined {
+  return hoveredHex;
 }

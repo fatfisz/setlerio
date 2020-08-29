@@ -1,4 +1,5 @@
 import { assert } from 'devAssert';
+import { getHighlightedHex } from 'display';
 import { drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { fps, getNextFrame } from 'frame';
@@ -199,10 +200,10 @@ function build(name: BuildingName): void {
 }
 
 function drawBuilding({ name, hex }: { name: string; hex: Point }) {
-  return (context: CanvasRenderingContext2D, hoveredHex: Point | undefined): void => {
+  return (context: CanvasRenderingContext2D): void => {
     const relativeMid = hex.toCanvas();
 
-    if (hoveredHex && hex.equal(hoveredHex)) {
+    if (hex.equal(getHighlightedHex())) {
       context.beginPath();
       const [firstHex, ...restHexes] = hexVertices;
       context.moveTo(...relativeMid.add(firstHex).toArray());
