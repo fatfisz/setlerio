@@ -6,11 +6,7 @@ export const frameDuration = 1000 / fps - 1;
 export let globalFrame = 0;
 
 export function goToNextFrame(): void {
-  globalFrame = getNextFrame();
-}
-
-export function getNextFrame(offset = 0): number {
-  return globalFrame + 1 + getNumberOfFrames(offset);
+  globalFrame += 1;
 }
 
 export function getNumberOfFrames(duration: number): number {
