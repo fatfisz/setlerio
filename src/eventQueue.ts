@@ -13,12 +13,9 @@ export function eventQueueRun(): void {
     const currentFrame = globalFrame - event.frame;
     if (currentFrame > event.totalFrames) {
       indicesToRemove.push(index);
-      return;
+    } else if (currentFrame >= 0) {
+      event.run(currentFrame, event.totalFrames);
     }
-    if (currentFrame < 0) {
-      return;
-    }
-    event.run(currentFrame, event.totalFrames);
   }
   for (const index of indicesToRemove.reverse()) {
     events.splice(index, 1);
