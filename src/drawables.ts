@@ -3,14 +3,16 @@ import { Point } from 'hex';
 export const drawablePriorityTerrain = 0;
 export const drawablePriorityBuildings = 1;
 export const drawablePriorityBorder = 2;
-export const drawablePriorityMenu = 3;
-export const drawableMaxPriority = 4;
+export const drawablePriorityToasts = 3;
+export const drawablePriorityMenu = 4;
+export const drawableMaxPriority = 5;
 
 type Drawable = [
   priority:
     | typeof drawablePriorityTerrain
     | typeof drawablePriorityBuildings
     | typeof drawablePriorityBorder
+    | typeof drawablePriorityToasts
     | typeof drawablePriorityMenu,
   draw: (context: CanvasRenderingContext2D) => void,
   hex?: Point,

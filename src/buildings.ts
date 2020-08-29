@@ -12,6 +12,7 @@ import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
 import { Requirements } from 'resources';
 import { drawText } from 'text';
+import { toastAdd } from 'toast';
 
 type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
 type AreaExpandingBuilding = 'townCenter' | 'tower';
@@ -190,7 +191,7 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
         [
           'tower',
           (): void => {
-            console.log('tower');
+            toastAdd('tower');
           },
         ],
       ],

@@ -4,6 +4,7 @@ import { eventQueueRun } from 'eventQueue';
 import { updateGui } from 'gui';
 import { resourcesInit } from 'resources';
 import { terrainInit } from 'terrain';
+import { toastInit } from 'toast';
 
 export function engineInit(): void {
   if (process.env.NODE_ENV !== 'production') {
@@ -27,6 +28,7 @@ export function engineInit(): void {
     document.head.append(style);
   }
 
+  toastInit();
   resourcesInit();
   terrainInit();
   displayInit();
