@@ -29,7 +29,11 @@ export default {
     replace({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    terser(),
+    terser({
+      compress: {
+        passes: 5,
+      },
+    }),
     prependHtml(),
   ],
   output: {

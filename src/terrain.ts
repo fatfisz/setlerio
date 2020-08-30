@@ -1,8 +1,15 @@
 import { assertRanOnce } from 'devAssert';
-import { drawablePriorityTerrain, drawablePush } from 'drawables';
+import { drawablePriority, drawablePush } from 'drawables';
 import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 
-type Terrain = 'meadow' | 'forest' | 'mountains' | 'desert';
+const terrain = {
+  meadow: 0,
+  forest: 1,
+  mountains: 2,
+  desert: 3,
+} as const;
+
+type Terrain = typeof terrain[keyof typeof terrain];
 
 const size = 28;
 const meadowThreshold = 0.4;
@@ -48,7 +55,7 @@ export function terrainInit(): void {
     for (let x = -size; x <= size; x += 1) {
       const distance = (x ** 2 + y ** 2) ** 0.5;
       if (distance < size && distance > size - 1.5) {
-        addSpecial('desert', new Point(x, y), desertRange, true);
+        addSpecial(terrain.desert, new Point(x, y), desertRange, true);
       }
     }
   }
@@ -63,28 +70,28 @@ export function terrainInit(): void {
 
         const random = Math.random();
         if (random < meadowThreshold) {
-          hashToTerrain.set(hex.toHash(), 'meadow');
+          hashToTerrain.set(hex.toHash(), terrain.meadow);
         } else if (random < forestThreshold) {
-          hashToTerrain.set(hex.toHash(), 'forest');
+          hashToTerrain.set(hex.toHash(), terrain.forest);
         } else if (random < mountainsThreshold) {
-          addSpecial('mountains', hex, mountainRange);
+          addSpecial(terrain.mountains, hex, mountainRange);
         } else {
-          addSpecial('desert', hex, desertRange);
+          addSpecial(terrain.desert, hex, desertRange);
         }
 
         if (!hashToTerrain.has(hex.toHash())) {
-          hashToTerrain.set(hex.toHash(), 'meadow');
+          hashToTerrain.set(hex.toHash(), terrain.meadow);
         }
       }
     }
   }
 
-  hashToTerrain.set(new Point(0, 0).toHash(), 'meadow');
+  hashToTerrain.set(new Point(0, 0).toHash(), terrain.meadow);
 
   for (const [hash, terrain] of hashToTerrain.entries()) {
     const hex = fromHash(hash);
     drawablePush(
-      drawablePriorityTerrain,
+      drawablePriority.terrain,
       drawTerrain({
         terrain,
         hex,
@@ -95,10 +102,10 @@ export function terrainInit(): void {
 }
 
 const terrainColor: Record<Terrain, string> = {
-  meadow: 'springgreen',
-  forest: 'forestgreen',
-  mountains: 'sienna',
-  desert: 'gold',
+  [terrain.meadow]: 'springgreen',
+  [terrain.forest]: 'forestgreen',
+  [terrain.mountains]: 'sienna',
+  [terrain.desert]: 'gold',
 };
 
 function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point }) {

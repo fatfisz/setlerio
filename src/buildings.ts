@@ -1,11 +1,6 @@
 import { assert, assertRanOnce } from 'devAssert';
 import { getHighlightedHex } from 'display';
-import {
-  drawablePriorityBorder,
-  drawablePriorityBuildings,
-  drawablePush,
-  drawableRemove,
-} from 'drawables';
+import { drawablePriority, drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
@@ -62,7 +57,7 @@ const borderHashes = new Set<string>();
 export function buildingsInit(): void {
   assertRanOnce('buildingsInit');
 
-  drawablePush(drawablePriorityBorder, drawBorder);
+  drawablePush(drawablePriority.border, drawBorder);
   eventQueuePush({
     run: animateBorder,
     duration: Infinity,
@@ -106,7 +101,7 @@ function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
     name,
     hex,
     drawableHandle: drawablePush(
-      drawablePriorityBuildings,
+      drawablePriority.buildings,
       drawBuilding({
         name: buildingDefs[name].name,
         hex,
