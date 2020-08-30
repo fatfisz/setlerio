@@ -64,21 +64,18 @@ export function terrainInit(): void {
     for (let x = -size; x <= size; x += 1) {
       if ((x ** 2 + y ** 2) ** 0.5 < size) {
         const hex = new Point(x, y);
-        if (hashToTerrain.has(hex.toHash())) {
-          continue;
+        if (!hashToTerrain.has(hex.toHash())) {
+          const random = Math.random();
+          if (random < meadowThreshold) {
+            hashToTerrain.set(hex.toHash(), terrain.meadow);
+          } else if (random < forestThreshold) {
+            hashToTerrain.set(hex.toHash(), terrain.forest);
+          } else if (random < mountainsThreshold) {
+            addSpecial(terrain.mountains, hex, mountainRange);
+          } else {
+            addSpecial(terrain.desert, hex, desertRange);
+          }
         }
-
-        const random = Math.random();
-        if (random < meadowThreshold) {
-          hashToTerrain.set(hex.toHash(), terrain.meadow);
-        } else if (random < forestThreshold) {
-          hashToTerrain.set(hex.toHash(), terrain.forest);
-        } else if (random < mountainsThreshold) {
-          addSpecial(terrain.mountains, hex, mountainRange);
-        } else {
-          addSpecial(terrain.desert, hex, desertRange);
-        }
-
         if (!hashToTerrain.has(hex.toHash())) {
           hashToTerrain.set(hex.toHash(), terrain.meadow);
         }
