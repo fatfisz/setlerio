@@ -67,16 +67,15 @@ export function displayInit(): void {
         zoom = 1;
       },
     };
-
-    const display = gui.addFolder('display');
-    display.add(displayState, 'cameraX');
-    display.add(displayState, 'cameraY');
-    display.add(displayState, 'zoom');
-    display.add(displayState, 'canvasX');
-    display.add(displayState, 'canvasY');
-    display.add(displayState, 'hexX');
-    display.add(displayState, 'hexY');
-    display.add(displayState, 'reset');
+    const folder = gui.addFolder('display');
+    folder.add(displayState, 'cameraX');
+    folder.add(displayState, 'cameraY');
+    folder.add(displayState, 'zoom');
+    folder.add(displayState, 'canvasX');
+    folder.add(displayState, 'canvasY');
+    folder.add(displayState, 'hexX');
+    folder.add(displayState, 'hexY');
+    folder.add(displayState, 'reset');
   });
   document.body.append(canvas);
   mouseInit();

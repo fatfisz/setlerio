@@ -1,7 +1,7 @@
 import { buildingsInit } from 'buildings';
 import { displayInit, displayUpdate } from 'display';
 import { eventQueueRun } from 'eventQueue';
-import { updateGui } from 'gui';
+import { updateGui, useGui } from 'gui';
 import { resourcesInit } from 'resources';
 import { terrainInit } from 'terrain';
 import { toastInit } from 'toast';
@@ -27,6 +27,10 @@ export function engineInit(): void {
     `;
     document.head.append(style);
   }
+
+  useGui((gui) => {
+    gui.open();
+  });
 
   toastInit();
   resourcesInit();

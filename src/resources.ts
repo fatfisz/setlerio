@@ -21,7 +21,6 @@ export function resourcesInit(): void {
   assertRanOnce('resourcesInit');
 
   useGui((gui) => {
-    gui.open();
     const folder = gui.addFolder('resources');
     folder.open();
     folder.add(resources, 'food', 0, undefined, 1);
