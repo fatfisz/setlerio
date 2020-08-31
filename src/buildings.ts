@@ -5,7 +5,7 @@ import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
-import { deduceResources, getMissingResourceInfo, Requirements } from 'resources';
+import { deduceResources, getMissingResourceInfo, TimedResources } from 'resources';
 import { drawText } from 'text';
 import { toastAdd } from 'toast';
 
@@ -22,29 +22,37 @@ const buildingDefs: Readonly<Record<
   BuildingName,
   {
     name: string;
-    requirements: Requirements;
+    requirements?: TimedResources;
+    production?: TimedResources;
+    indestructible?: boolean;
   }
 >> = {
   blank: {
-    name: '-',
-    requirements: [],
+    name: '',
   },
   townCenter: {
     name: 'town center',
-    requirements: [],
+    indestructible: true,
   },
   lumberjackHut: {
     name: "lumberjack's hut",
     requirements: [
-      ['wood', 2],
-      ['stone', 2],
+      [
+        ['wood', 2],
+        ['stone', 2],
+      ],
+      5000,
     ],
+    production: [[['wood', 1]], 5000],
   },
   tower: {
     name: 'tower',
     requirements: [
-      ['wood', 2],
-      ['stone', 3],
+      [
+        ['wood', 2],
+        ['stone', 3],
+      ],
+      5000,
     ],
   },
 };
@@ -77,8 +85,12 @@ function addBuilding(hex: Point, name: BuildingName): void {
 }
 
 function removeBuilding(hex: Point): void {
-  assert(() => buildings.has(hex.toHash()), 'The building does not exist on the map');
+  assert(() => buildings.has(hex.toHash()), `There is no building at ${hex.toHash()}`);
   const { name } = buildings.get(hex.toHash())!;
+  assert(
+    () => !buildingDefs[name].indestructible,
+    `Building "${buildingDefs[name].name}" is indestructible`,
+  );
   setBuilding(hex, 'blank', true);
   if (isAreaExpandingBuilding(name)) {
     recalculateBorder(hex);
@@ -181,26 +193,37 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
   if (!buildings.has(hash)) {
     return;
   }
-  return [
-    [
-      'build',
+  const building = buildings.get(hash)!;
+  if (building.name === 'blank') {
+    return [
       [
-        [buildingDefs.lumberjackHut.name, (): void => build(hex, 'lumberjackHut')],
-        [buildingDefs.tower.name, (): void => build(hex, 'tower')],
+        'build',
+        [
+          [buildingDefs.lumberjackHut.name, (): void => build(hex, 'lumberjackHut')],
+          [buildingDefs.tower.name, (): void => build(hex, 'tower')],
+        ],
       ],
-    ],
-  ];
+    ];
+  } else if (!buildingDefs[building.name].indestructible) {
+    return [['destroy', (): void => destroy(hex)]];
+  }
 }
 
 function build(hex: Point, name: BuildingName): void {
-  const building = buildingDefs[name];
-  const missingResourceInfo = getMissingResourceInfo(building.requirements);
+  const { requirements } = buildingDefs[name];
+  assert(requirements, `Building "${buildingDefs[name].name}" cannot be built`);
+  const missingResourceInfo = getMissingResourceInfo(requirements);
   if (missingResourceInfo) {
     toastAdd(missingResourceInfo);
   } else {
     addBuilding(hex, name);
-    deduceResources(building.requirements);
+    deduceResources(requirements);
   }
+}
+
+function destroy(hex: Point): void {
+  // TODO: restore some resources
+  removeBuilding(hex);
 }
 
 function drawBuilding({ name, hex }: { name: string; hex: Point }) {
@@ -216,12 +239,14 @@ function drawBuilding({ name, hex }: { name: string; hex: Point }) {
       }
       context.closePath();
 
-      context.fillStyle = '#fffa';
+      context.fillStyle = '#fff9';
 
       context.fill();
     }
 
-    drawText(context, name, [0, 0, 0], ...relativeMid.toArray(), 0.5, 0.5);
+    if (name) {
+      drawText(context, name, [0, 0, 0], ...relativeMid.toArray(), 0.5, 0.5);
+    }
   };
 }
 

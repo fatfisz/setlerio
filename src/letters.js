@@ -383,6 +383,14 @@ module.exports = {
 .
 
   `,
+  '∞': letter(5)`
+
+ . .
+. . .
+ . .
+
+
+  `,
 };
 
 function letter(width) {
