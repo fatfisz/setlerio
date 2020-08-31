@@ -1,6 +1,6 @@
 import { Point } from 'hex';
 
-export const drawablePriority = {
+export const drawablePriorityId = {
   terrain: 0,
   buildings: 1,
   border: 2,
@@ -10,10 +10,10 @@ export const drawablePriority = {
 
 export const drawableMaxPriority = 5;
 
-type Priority = typeof drawablePriority[keyof typeof drawablePriority];
+type PriorityId = typeof drawablePriorityId[keyof typeof drawablePriorityId];
 
 type Drawable = [
-  priority: Priority,
+  priority: PriorityId,
   draw: (context: CanvasRenderingContext2D) => void,
   hex?: Point,
 ];

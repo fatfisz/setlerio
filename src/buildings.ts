@@ -1,6 +1,6 @@
 import { assert, assertRanOnce } from 'devAssert';
 import { getHighlightedHex } from 'display';
-import { drawablePriority, drawablePush, drawableRemove } from 'drawables';
+import { drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
@@ -9,32 +9,42 @@ import { deduceResources, getMissingResourceInfo, TimedResources } from 'resourc
 import { drawText } from 'text';
 import { toastAdd } from 'toast';
 
-type BuildingName = 'blank' | 'townCenter' | 'lumberjackHut' | 'tower';
-type AreaExpandingBuilding = 'townCenter' | 'tower';
+const buildingId = {
+  blank: 0,
+  townCenter: 1,
+  tower: 2,
+  lumberjackHut: 3,
+} as const;
+
+type BuildingId = typeof buildingId[keyof typeof buildingId];
+
+type AreaExpandingBuilding = typeof buildingId.townCenter | typeof buildingId.tower;
 
 interface BuildingInfo {
-  name: BuildingName;
+  id: BuildingId;
   hex: Point;
   drawableHandle: number;
 }
 
-const buildingDefs: Readonly<Record<
-  BuildingName,
+const buildingDefs: {
+  name: string;
+  requirements?: TimedResources;
+  production?: TimedResources;
+  indestructible?: boolean;
+}[] = [
+  { name: '', indestructible: true },
+  { name: 'town center', indestructible: true },
   {
-    name: string;
-    requirements?: TimedResources;
-    production?: TimedResources;
-    indestructible?: boolean;
-  }
->> = {
-  blank: {
-    name: '',
+    name: 'tower',
+    requirements: [
+      [
+        ['wood', 2],
+        ['stone', 3],
+      ],
+      5000,
+    ],
   },
-  townCenter: {
-    name: 'town center',
-    indestructible: true,
-  },
-  lumberjackHut: {
+  {
     name: "lumberjack's hut",
     requirements: [
       [
@@ -45,17 +55,7 @@ const buildingDefs: Readonly<Record<
     ],
     production: [[['wood', 1]], 5000],
   },
-  tower: {
-    name: 'tower',
-    requirements: [
-      [
-        ['wood', 2],
-        ['stone', 3],
-      ],
-      5000,
-    ],
-  },
-};
+];
 
 const areaExpandRadius = 2;
 const buildings = new Map<string, BuildingInfo>();
@@ -65,43 +65,43 @@ const borderHashes = new Set<string>();
 export function buildingsInit(): void {
   assertRanOnce('buildingsInit');
 
-  drawablePush(drawablePriority.border, drawBorder);
+  drawablePush(drawablePriorityId.border, drawBorder);
   eventQueuePush({
     run: animateBorder,
     duration: Infinity,
   });
 
-  addBuilding(new Point(0, 0), 'townCenter');
-  addBuilding(new Point(2, -2), 'tower');
-  addBuilding(new Point(3, -1), 'tower');
+  addBuilding(new Point(0, 0), buildingId.townCenter);
+  addBuilding(new Point(2, -2), buildingId.tower);
+  addBuilding(new Point(3, -1), buildingId.tower);
   removeBuilding(new Point(2, -2));
 }
 
-function addBuilding(hex: Point, name: BuildingName): void {
-  setBuilding(hex, name, true);
-  if (isAreaExpandingBuilding(name)) {
+function addBuilding(hex: Point, id: BuildingId): void {
+  setBuilding(hex, id, true);
+  if (isAreaExpandingBuilding(id)) {
     recalculateBorder(hex);
   }
 }
 
 function removeBuilding(hex: Point): void {
-  assert(() => buildings.has(hex.toHash()), `There is no building at ${hex.toHash()}`);
-  const { name } = buildings.get(hex.toHash())!;
   assert(
-    () => !buildingDefs[name].indestructible,
-    `Building "${buildingDefs[name].name}" is indestructible`,
+    () => buildings.has(hex.toHash()),
+    () => `There is no building at ${hex.toHash()}`,
   );
-  setBuilding(hex, 'blank', true);
-  if (isAreaExpandingBuilding(name)) {
+  const { id } = buildings.get(hex.toHash())!;
+  assert(!buildingDefs[id].indestructible, () => `Building "${idToName(id)}" is indestructible`);
+  setBuilding(hex, buildingId.blank, true);
+  if (isAreaExpandingBuilding(id)) {
     recalculateBorder(hex);
   }
 }
 
-function isAreaExpandingBuilding(name: BuildingName): name is AreaExpandingBuilding {
-  return name === 'townCenter' || name === 'tower';
+function isAreaExpandingBuilding(id: BuildingId): id is AreaExpandingBuilding {
+  return id === buildingId.townCenter || id === buildingId.tower;
 }
 
-function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
+function setBuilding(hex: Point, id: BuildingId, overwrite: boolean): void {
   const hash = hex.toHash();
   if (buildings.has(hash)) {
     if (!overwrite) {
@@ -110,12 +110,12 @@ function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
     drawableRemove(buildings.get(hash)!.drawableHandle);
   }
   buildings.set(hash, {
-    name,
+    id,
     hex,
     drawableHandle: drawablePush(
-      drawablePriority.buildings,
+      drawablePriorityId.buildings,
       drawBuilding({
-        name: buildingDefs[name].name,
+        name: idToName(id),
         hex,
       }),
       hex,
@@ -126,12 +126,12 @@ function setBuilding(hex: Point, name: BuildingName, overwrite: boolean): void {
 function recalculateBorder(hex: Point): void {
   const neighborBorderHashes = new Set<string>();
   const neighborInnerHashes = new Set<string>();
-  const add = buildings.get(hex.toHash())!.name !== 'blank';
+  const add = buildings.get(hex.toHash())!.id !== buildingId.blank;
 
   if (add) {
     for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
       const building = buildings.get(farNeighborHex.toHash());
-      if (building && isAreaExpandingBuilding(building.name)) {
+      if (building && isAreaExpandingBuilding(building.id)) {
         for (const neighborHex of hexRange(building.hex, areaExpandRadius - 1)) {
           neighborInnerHashes.add(neighborHex.toHash());
         }
@@ -139,7 +139,7 @@ function recalculateBorder(hex: Point): void {
     }
 
     for (const neighborHex of hexRange(hex, areaExpandRadius)) {
-      setBuilding(neighborHex, 'blank', false);
+      setBuilding(neighborHex, buildingId.blank, false);
     }
 
     for (const borderNeighborHex of hexRange(hex, areaExpandRadius, areaExpandRadius)) {
@@ -156,7 +156,7 @@ function recalculateBorder(hex: Point): void {
   } else {
     for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
       const building = buildings.get(farNeighborHex.toHash());
-      if (building && isAreaExpandingBuilding(building.name)) {
+      if (building && isAreaExpandingBuilding(building.id)) {
         for (const neighborHex of hexRange(building.hex, areaExpandRadius, areaExpandRadius)) {
           neighborBorderHashes.add(neighborHex.toHash());
         }
@@ -194,29 +194,29 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
     return;
   }
   const building = buildings.get(hash)!;
-  if (building.name === 'blank') {
+  if (building.id === buildingId.blank) {
     return [
       [
         'build',
         [
-          [buildingDefs.lumberjackHut.name, (): void => build(hex, 'lumberjackHut')],
-          [buildingDefs.tower.name, (): void => build(hex, 'tower')],
+          [idToName(buildingId.lumberjackHut), (): void => build(hex, buildingId.lumberjackHut)],
+          [idToName(buildingId.tower), (): void => build(hex, buildingId.tower)],
         ],
       ],
     ];
-  } else if (!buildingDefs[building.name].indestructible) {
+  } else if (!buildingDefs[building.id].indestructible) {
     return [['destroy', (): void => destroy(hex)]];
   }
 }
 
-function build(hex: Point, name: BuildingName): void {
-  const { requirements } = buildingDefs[name];
-  assert(requirements, `Building "${buildingDefs[name].name}" cannot be built`);
+function build(hex: Point, id: BuildingId): void {
+  const { requirements } = buildingDefs[id];
+  assert(requirements, () => `Building "${idToName(id)}" cannot be built`);
   const missingResourceInfo = getMissingResourceInfo(requirements);
   if (missingResourceInfo) {
     toastAdd(missingResourceInfo);
   } else {
-    addBuilding(hex, name);
+    addBuilding(hex, id);
     deduceResources(requirements);
   }
 }
@@ -283,4 +283,8 @@ function drawBorder(context: CanvasRenderingContext2D): void {
 
 function animateBorder(currentFrame: number): void {
   borderLineDashOffset = (currentFrame * dashSpeed) % (dashLength + dashSpace);
+}
+
+function idToName(id: BuildingId): string {
+  return buildingDefs[id].name;
 }

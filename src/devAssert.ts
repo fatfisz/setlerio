@@ -1,9 +1,9 @@
-export function assert(predicate: any, message: string): asserts predicate {
+export function assert(predicate: any, message: string | (() => string)): asserts predicate {
   if (
     process.env.NODE_ENV !== 'production' &&
     (typeof predicate === 'function' ? !predicate() : !predicate)
   ) {
-    throw new Error(message);
+    throw new Error(typeof message === 'function' ? message() : message);
   }
 }
 

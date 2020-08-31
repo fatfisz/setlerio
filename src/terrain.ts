@@ -1,15 +1,15 @@
 import { assertRanOnce } from 'devAssert';
-import { drawablePriority, drawablePush } from 'drawables';
+import { drawablePriorityId, drawablePush } from 'drawables';
 import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
 
-const terrain = {
+const terrainId = {
   meadow: 0,
   forest: 1,
   mountains: 2,
   desert: 3,
 } as const;
 
-type Terrain = typeof terrain[keyof typeof terrain];
+type TerrainId = typeof terrainId[keyof typeof terrainId];
 
 const terrainColor = ['springgreen', 'forestgreen', 'sienna', 'gold'] as const;
 
@@ -23,13 +23,13 @@ const mountainRange = [3, 5] as const;
 export function terrainInit(): void {
   assertRanOnce('terrainInit');
 
-  const hashToTerrain = new Map<string, Terrain>();
+  const hashToTerrain = new Map<string, TerrainId>();
   const specialForbidden = new Set<string>(
     neighborHexes.map((neighborHex) => neighborHex.toHash()),
   );
 
   function addSpecial(
-    terrain: Terrain,
+    terrain: TerrainId,
     hex: Point,
     [rangeLower, rangeUpper]: readonly [number, number],
     ignoreForbiddenCheck = false,
@@ -57,7 +57,7 @@ export function terrainInit(): void {
     for (let x = -size; x <= size; x += 1) {
       const distance = (x ** 2 + y ** 2) ** 0.5;
       if (distance < size && distance > size - 1.5) {
-        addSpecial(terrain.desert, new Point(x, y), desertRange, true);
+        addSpecial(terrainId.desert, new Point(x, y), desertRange, true);
       }
     }
   }
@@ -69,28 +69,28 @@ export function terrainInit(): void {
         if (!hashToTerrain.has(hex.toHash())) {
           const random = Math.random();
           if (random < meadowThreshold) {
-            hashToTerrain.set(hex.toHash(), terrain.meadow);
+            hashToTerrain.set(hex.toHash(), terrainId.meadow);
           } else if (random < forestThreshold) {
-            hashToTerrain.set(hex.toHash(), terrain.forest);
+            hashToTerrain.set(hex.toHash(), terrainId.forest);
           } else if (random < mountainsThreshold) {
-            addSpecial(terrain.mountains, hex, mountainRange);
+            addSpecial(terrainId.mountains, hex, mountainRange);
           } else {
-            addSpecial(terrain.desert, hex, desertRange);
+            addSpecial(terrainId.desert, hex, desertRange);
           }
         }
         if (!hashToTerrain.has(hex.toHash())) {
-          hashToTerrain.set(hex.toHash(), terrain.meadow);
+          hashToTerrain.set(hex.toHash(), terrainId.meadow);
         }
       }
     }
   }
 
-  hashToTerrain.set(new Point(0, 0).toHash(), terrain.meadow);
+  hashToTerrain.set(new Point(0, 0).toHash(), terrainId.meadow);
 
   for (const [hash, terrain] of hashToTerrain.entries()) {
     const hex = fromHash(hash);
     drawablePush(
-      drawablePriority.terrain,
+      drawablePriorityId.terrain,
       drawTerrain({
         terrain,
         hex,
@@ -100,7 +100,7 @@ export function terrainInit(): void {
   }
 }
 
-function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point }) {
+function drawTerrain({ terrain, hex }: { terrain: TerrainId; hex: Point }) {
   return (context: CanvasRenderingContext2D): void => {
     context.lineJoin = 'round';
     context.lineWidth = 0.5;

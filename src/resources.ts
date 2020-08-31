@@ -1,7 +1,7 @@
 import { displayWidth } from 'config';
 import { assert, assertRanOnce } from 'devAssert';
 import { useResetTransform } from 'display';
-import { drawablePriority, drawablePush } from 'drawables';
+import { drawablePriorityId, drawablePush } from 'drawables';
 import { useGui } from 'gui';
 import { drawText } from 'text';
 
@@ -30,7 +30,7 @@ export function resourcesInit(): void {
     folder.add(resources, 'gold', 0, undefined, 1);
   });
 
-  drawablePush(drawablePriority.toasts, drawResources);
+  drawablePush(drawablePriorityId.toasts, drawResources);
 }
 
 export function getMissingResourceInfo([items]: TimedResources): string | undefined {

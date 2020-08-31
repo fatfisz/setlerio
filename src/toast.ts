@@ -1,7 +1,7 @@
 import { displayHeight, displayWidth } from 'config';
 import { assertRanOnce } from 'devAssert';
 import { useResetTransform } from 'display';
-import { drawablePriority, drawablePush } from 'drawables';
+import { drawablePriorityId, drawablePush } from 'drawables';
 import { eventQueuePush, Run } from 'eventQueue';
 import { drawText } from 'text';
 
@@ -24,7 +24,7 @@ let isFadingIn = false;
 export function toastInit(): void {
   assertRanOnce('toastInit');
 
-  drawablePush(drawablePriority.toasts, drawToasts);
+  drawablePush(drawablePriorityId.toasts, drawToasts);
 }
 
 export function toastAdd(text: string): void {
