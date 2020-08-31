@@ -32,6 +32,7 @@ export default {
     terser({
       compress: {
         passes: 5,
+        pure_getters: true,
       },
     }),
     prependHtml(),
