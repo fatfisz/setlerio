@@ -128,16 +128,19 @@ function recalculateBorder(hex: Point): void {
   const neighborInnerHashes = new Set<string>();
   const add = buildings.get(hex.toHash())!.id !== buildingId.blank;
 
-  if (add) {
-    for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
-      const building = buildings.get(farNeighborHex.toHash());
-      if (building && isAreaExpandingBuilding(building.id)) {
-        for (const neighborHex of hexRange(building.hex, areaExpandRadius - 1)) {
-          neighborInnerHashes.add(neighborHex.toHash());
-        }
+  for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
+    const building = buildings.get(farNeighborHex.toHash());
+    if (building && isAreaExpandingBuilding(building.id)) {
+      for (const neighborHex of hexRange(building.hex, areaExpandRadius, areaExpandRadius)) {
+        neighborBorderHashes.add(neighborHex.toHash());
+      }
+      for (const neighborHex of hexRange(building.hex, areaExpandRadius - 1)) {
+        neighborInnerHashes.add(neighborHex.toHash());
       }
     }
+  }
 
+  if (add) {
     for (const neighborHex of hexRange(hex, areaExpandRadius)) {
       setBuilding(neighborHex, buildingId.blank, false);
     }
@@ -154,18 +157,6 @@ function recalculateBorder(hex: Point): void {
       borderHashes.delete(hash);
     }
   } else {
-    for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
-      const building = buildings.get(farNeighborHex.toHash());
-      if (building && isAreaExpandingBuilding(building.id)) {
-        for (const neighborHex of hexRange(building.hex, areaExpandRadius, areaExpandRadius)) {
-          neighborBorderHashes.add(neighborHex.toHash());
-        }
-        for (const neighborHex of hexRange(building.hex, areaExpandRadius - 1)) {
-          neighborInnerHashes.add(neighborHex.toHash());
-        }
-      }
-    }
-
     for (const neighborHash of neighborInnerHashes) {
       neighborBorderHashes.delete(neighborHash);
     }
