@@ -21,7 +21,9 @@ const barVertices = [
   new Point(-barWidth / 2, barHeight / 2),
 ];
 
-export function progressAdd(hex: Point): [UpdateProgress, DestroyProgress] {
+export function progressAdd(
+  hex: Point,
+): [updateProgress: UpdateProgress, destroyProgres: DestroyProgress] {
   const state = {
     progress: 0,
   };

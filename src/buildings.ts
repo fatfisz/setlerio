@@ -2,7 +2,7 @@ import { drawPathFromPoints } from 'context';
 import { assert, assertRanOnce } from 'devAssert';
 import { getHighlightedHex } from 'display';
 import { drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
-import { eventQueuePush } from 'eventQueue';
+import { eventQueuePush, eventQueueRemove } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
@@ -25,8 +25,8 @@ type AreaExpandingBuilding = typeof buildingId.townCenter | typeof buildingId.to
 interface BuildingInfo {
   id: BuildingId;
   hex: Point;
-  inProgress: boolean;
   drawableHandle: number;
+  cancel?: () => void;
 }
 
 const buildingDefs: {
@@ -110,12 +110,11 @@ function setBuilding(hex: Point, id: BuildingId, overwrite: boolean): void {
     if (!overwrite) {
       return;
     }
-    cleanUpBuildingHandles(buildings.get(hash)!);
+    cleanUpBuilding(buildings.get(hash)!);
   }
   buildings.set(hash, {
     id,
     hex,
-    inProgress: false,
     drawableHandle: drawablePush(
       drawablePriorityId.buildings,
       drawBuilding({
@@ -174,7 +173,7 @@ function recalculateBorder(hex: Point): void {
           () => buildings.has(hash),
           "The building has to exist since it's a neighbor of a deleted hex",
         );
-        cleanUpBuildingHandles(buildings.get(hash)!);
+        cleanUpBuilding(buildings.get(hash)!);
         buildings.delete(hash);
         buildingsToDestroy.add(hash);
         borderHashes.delete(hash);
@@ -183,8 +182,11 @@ function recalculateBorder(hex: Point): void {
   }
 }
 
-function cleanUpBuildingHandles(building: BuildingInfo): void {
+function cleanUpBuilding(building: BuildingInfo): void {
   drawableRemove(building.drawableHandle);
+  if (building.cancel) {
+    building.cancel();
+  }
 }
 
 export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
@@ -193,9 +195,8 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
     return;
   }
   const building = buildings.get(hash)!;
-  if (building.inProgress) {
-    // TODO: allow canceling
-    return;
+  if (building.cancel) {
+    return [['cancel', (): void => actionCancel(hex)]];
   } else if (building.id === buildingId.blank) {
     return [
       [
@@ -229,28 +230,46 @@ function actionBuild(hex: Point, id: BuildingId): void {
   );
   const building = buildings.get(hex.toHash())!;
   assert(building.id === buildingId.blank, 'New buildings can only be built on blank hexes');
-  assert(!building.inProgress, 'Cannot build on the same hex as another building in progress');
-  building.inProgress = true;
-  deduceResources(requirements);
+  assert(!building.cancel, 'Cannot build on the same hex as another building in progress');
 
-  // Allow canceling if the building gets destroyed in the meantime
-  const [update, destroy] = progressAdd(hex);
-  eventQueuePush({
+  const [updateProgress, destroyProgress] = progressAdd(hex);
+  const eventHandle = eventQueuePush({
     run: (currentFrame, totalFrames) => {
       if (currentFrame === totalFrames) {
-        destroy();
+        destroyProgress();
         addBuilding(hex, id);
       } else {
-        update(currentFrame / totalFrames);
+        updateProgress(currentFrame / totalFrames);
       }
     },
     duration: requirements[1],
   });
+
+  building.cancel = (): void => {
+    // TODO: Restore resources
+    destroyProgress();
+    eventQueueRemove(eventHandle);
+    building.cancel = undefined;
+  };
+
+  deduceResources(requirements);
 }
 
 function actionDestroy(hex: Point): void {
   // TODO: restore some resources
   removeBuilding(hex);
+}
+
+function actionCancel(hex: Point): void {
+  assert(
+    () => buildings.has(hex.toHash()),
+    () => `There is no building at ${hex.toHash()}`,
+  );
+  const building = buildings.get(hex.toHash())!;
+  // The !! "operator" is used because it allows TS to understand that
+  // building.cancel is a function without calling it
+  assert(!!building.cancel, 'The cancel function should be present');
+  building.cancel();
 }
 
 function drawBuilding({ name, hex }: { name: string; hex: Point }) {
