@@ -1,3 +1,4 @@
+import { drawPathFromPoints } from 'context';
 import { assert, assertRanOnce } from 'devAssert';
 import { getHighlightedHex } from 'display';
 import { drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
@@ -222,16 +223,11 @@ function drawBuilding({ name, hex }: { name: string; hex: Point }) {
     const relativeMid = hex.toCanvas();
 
     if (hex.equal(getHighlightedHex())) {
-      context.beginPath();
-      const [firstHex, ...restHexes] = hexVertices;
-      context.moveTo(...relativeMid.add(firstHex).toArray());
-      for (const restHex of restHexes) {
-        context.lineTo(...relativeMid.add(restHex).toArray());
-      }
-      context.closePath();
-
+      drawPathFromPoints(
+        context,
+        hexVertices.map((vertex) => vertex.add(relativeMid)),
+      );
       context.fillStyle = '#fff9';
-
       context.fill();
     }
 
@@ -248,7 +244,6 @@ let borderLineDashOffset = 0;
 
 function drawBorder(context: CanvasRenderingContext2D): void {
   context.beginPath();
-
   for (const hash of borderHashes) {
     const hex = fromHash(hash);
     const relativeMid = hex.toCanvas();
@@ -259,15 +254,13 @@ function drawBorder(context: CanvasRenderingContext2D): void {
       }
     }
   }
-
   context.lineJoin = 'round';
   context.lineWidth = 4;
   context.strokeStyle = 'white';
   context.lineDashOffset = borderLineDashOffset;
   context.setLineDash([dashLength, dashSpace]);
-
   context.stroke();
-
+  // Clean up unique properties
   context.lineDashOffset = 0;
   context.setLineDash([]);
 }

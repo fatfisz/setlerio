@@ -1,4 +1,5 @@
 import { defaultPixelSize } from 'config';
+import { drawPathFromPoints } from 'context';
 import { drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
 import { Point } from 'hex';
 import { drawText } from 'text';
@@ -13,6 +14,12 @@ type DestroyProgress = () => void;
 
 const barWidth = 120;
 const barHeight = 24;
+const barVertices = [
+  new Point(-barWidth / 2, -barHeight / 2),
+  new Point(barWidth / 2, -barHeight / 2),
+  new Point(barWidth / 2, barHeight / 2),
+  new Point(-barWidth / 2, barHeight / 2),
+];
 
 export function progressAdd(hex: Point): [UpdateProgress, DestroyProgress] {
   const state = {
@@ -34,23 +41,18 @@ function drawProgressBar(hex: Point, progressState: ProgressState) {
     const relativeMid = hex.toCanvas();
     const text = `${(progressState.progress * 100).toFixed(0)}%`;
 
-    context.beginPath();
-    context.moveTo(...relativeMid.add({ x: -barWidth / 2, y: -barHeight / 2 }).toArray());
-    context.lineTo(...relativeMid.add({ x: barWidth / 2, y: -barHeight / 2 }).toArray());
-    context.lineTo(...relativeMid.add({ x: barWidth / 2, y: barHeight / 2 }).toArray());
-    context.lineTo(...relativeMid.add({ x: -barWidth / 2, y: barHeight / 2 }).toArray());
-    context.closePath();
-
+    drawPathFromPoints(
+      context,
+      barVertices.map((vertex) => vertex.add(relativeMid)),
+    );
     context.fillStyle = '#fff3';
     context.lineWidth = defaultPixelSize;
     context.lineJoin = 'miter';
     context.strokeStyle = 'white';
-
     context.fill();
     context.stroke();
 
     context.fillStyle = 'white';
-
     context.fillRect(
       ...relativeMid.add({ x: -barWidth / 2, y: -barHeight / 2 }).toArray(),
       barWidth * progressState.progress,

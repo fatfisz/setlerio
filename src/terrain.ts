@@ -1,3 +1,4 @@
+import { drawPathFromPoints } from 'context';
 import { assertRanOnce } from 'devAssert';
 import { drawablePriorityId, drawablePush } from 'drawables';
 import { fromHash, hexVertices, neighborHexes, Point } from 'hex';
@@ -102,20 +103,16 @@ export function terrainInit(): void {
 
 function drawTerrain({ terrain, hex }: { terrain: TerrainId; hex: Point }) {
   return (context: CanvasRenderingContext2D): void => {
+    const relativeMid = hex.toCanvas();
+
+    drawPathFromPoints(
+      context,
+      hexVertices.map((vertex) => vertex.add(relativeMid)),
+    );
+    context.fillStyle = terrainColor[terrain];
     context.lineJoin = 'round';
     context.lineWidth = 0.5;
     context.strokeStyle = 'black';
-    context.fillStyle = terrainColor[terrain];
-
-    const relativeMid = hex.toCanvas();
-
-    context.beginPath();
-    const [firstHex, ...restHexes] = hexVertices;
-    context.moveTo(...relativeMid.add(firstHex).toArray());
-    for (const restHex of restHexes) {
-      context.lineTo(...relativeMid.add(restHex).toArray());
-    }
-    context.closePath();
     context.fill();
     context.stroke();
   };
