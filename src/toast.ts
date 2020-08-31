@@ -5,11 +5,10 @@ import { drawablePriorityId, drawablePush } from 'drawables';
 import { eventQueuePush, Run } from 'eventQueue';
 import { drawText } from 'text';
 
-interface Toast {
-  text: string;
-  offset: number;
-  opacity: number;
-}
+type Toast = [text: string, offset: number, opacity: number];
+
+const toastTupleOffset = 1;
+const toastTupleOpacity = 2;
 
 const toastWidth = 448;
 const toastHeight = 64;
@@ -28,14 +27,10 @@ export function toastInit(): void {
 }
 
 export function toastAdd(text: string): void {
-  toastAddObject({
-    text,
-    offset: -1,
-    opacity: 0,
-  });
+  toastAddObject(text, -1, 0);
 }
 
-export function toastAddObject(toast: Toast): void {
+export function toastAddObject(...toast: Toast): void {
   if (isFadingIn) {
     toastsToAdd.add(toast);
     return;
@@ -44,27 +39,20 @@ export function toastAddObject(toast: Toast): void {
   toasts.add(toast);
   isFadingIn = true;
 
-  eventQueuePush({
-    run: fadeIn(toast),
-    duration: animationTime,
-  });
-  eventQueuePush({
-    run: fadeOut(toast),
-    when: animationTime + visibleTime,
-    duration: animationTime,
-  });
+  eventQueuePush(fadeIn(toast), animationTime);
+  eventQueuePush(fadeOut(toast), animationTime, animationTime + visibleTime);
 }
 
 function fadeIn(toast: Toast): Run {
   return (currentFrame, totalFrames): void => {
-    toast.offset = currentFrame / totalFrames - 1;
-    toast.opacity = currentFrame / totalFrames;
+    toast[toastTupleOffset] = currentFrame / totalFrames - 1;
+    toast[toastTupleOpacity] = currentFrame / totalFrames;
     if (currentFrame === totalFrames) {
       isFadingIn = false;
       if (toastsToAdd.size > 0) {
         const [firstToast] = toastsToAdd;
         toastsToAdd.delete(firstToast);
-        toastAddObject(firstToast);
+        toastAddObject(...firstToast);
       }
     }
   };
@@ -72,8 +60,8 @@ function fadeIn(toast: Toast): Run {
 
 function fadeOut(toast: Toast): Run {
   return (currentFrame, totalFrames): void => {
-    toast.offset = currentFrame / totalFrames / 3;
-    toast.opacity = 1 - currentFrame / totalFrames;
+    toast[toastTupleOffset] = currentFrame / totalFrames / 3;
+    toast[toastTupleOpacity] = 1 - currentFrame / totalFrames;
     if (currentFrame === totalFrames) {
       toasts.delete(toast);
     }
@@ -82,26 +70,19 @@ function fadeOut(toast: Toast): Run {
 
 function drawToasts(context: CanvasRenderingContext2D): void {
   useResetTransform(() => {
-    let offset = 0;
+    let totalOffset = 0;
 
     context.fillStyle = 'white';
 
     for (const toast of [...toasts].reverse()) {
-      offset += 1 + toast.offset;
-      context.globalAlpha = toast.opacity;
+      const [text, offset, opacity] = toast;
+      totalOffset += 1 + offset;
+      context.globalAlpha = opacity;
 
-      const top = displayHeight - offset * (padding + toastHeight);
+      const top = displayHeight - totalOffset * (padding + toastHeight);
 
       context.fillRect(displayWidth - padding - toastWidth, top, toastWidth, toastHeight);
-      drawText(
-        context,
-        toast.text,
-        [0, 0, 0],
-        displayWidth - toastWidth,
-        top + toastHeight / 2,
-        0,
-        0.5,
-      );
+      drawText(context, text, [0, 0, 0], displayWidth - toastWidth, top + toastHeight / 2, 0, 0.5);
     }
   });
 }

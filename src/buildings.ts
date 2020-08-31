@@ -7,7 +7,12 @@ import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
 import { progressAdd } from 'progressBar';
-import { deduceResources, getMissingResourceInfo, TimedResources } from 'resources';
+import {
+  deduceResources,
+  getMissingResourceInfo,
+  TimedResources,
+  timedResourcesTupleTime,
+} from 'resources';
 import { drawText } from 'text';
 import { toastAdd } from 'toast';
 
@@ -20,48 +25,50 @@ const buildingId = {
 
 type BuildingId = typeof buildingId[keyof typeof buildingId];
 
-type AreaExpandingBuilding = typeof buildingId.townCenter | typeof buildingId.tower;
+type AreaExpandingBuildingId = typeof buildingId.townCenter | typeof buildingId.tower;
 
-interface BuildingInfo {
-  id: BuildingId;
-  hex: Point;
-  drawableHandle: number;
-  cancel?: () => void;
-}
+type Building = [id: BuildingId, hex: Point, drawableHandle: number, cancel?: () => void];
 
-const buildingDefs: {
-  name: string;
-  requirements?: TimedResources;
-  production?: TimedResources;
-  indestructible?: boolean;
-}[] = [
-  { name: '', indestructible: true },
-  { name: 'town center', indestructible: true },
-  {
-    name: 'tower',
-    requirements: [
+const buildingTupleId = 0;
+const buildingTupleHex = 1;
+const buildingTupleCancel = 3;
+
+const buildingDefs: [
+  name: string,
+  requirements?: TimedResources,
+  production?: TimedResources,
+  indestructible?: boolean,
+][] = [
+  ['', , , true],
+  ['town center', , , true],
+  [
+    'tower',
+    [
       [
         ['wood', 2],
         ['stone', 3],
       ],
       5000,
     ],
-  },
-  {
-    name: "lumberjack's hut",
-    requirements: [
+  ],
+  [
+    "lumberjack's hut",
+    [
       [
         ['wood', 2],
         ['stone', 2],
       ],
       5000,
     ],
-    production: [[['wood', 1]], 5000],
-  },
+    [[['wood', 1]], 5000],
+  ],
 ];
 
+const buildingDefTupleName = 0;
+const buildingDefTupleIndestructible = 3;
+
 const areaExpandRadius = 2;
-const buildings = new Map<string, BuildingInfo>();
+const buildings = new Map<string, Building>();
 const buildingsToDestroy = new Set<string>();
 const borderHashes = new Set<string>();
 
@@ -69,10 +76,7 @@ export function buildingsInit(): void {
   assertRanOnce('buildingsInit');
 
   drawablePush(drawablePriorityId.border, drawBorder);
-  eventQueuePush({
-    run: animateBorder,
-    duration: Infinity,
-  });
+  eventQueuePush(animateBorder, Infinity);
 
   addBuilding(new Point(0, 0), buildingId.townCenter);
   addBuilding(new Point(2, -2), buildingId.tower);
@@ -92,15 +96,18 @@ function removeBuilding(hex: Point): void {
     () => buildings.has(hex.toHash()),
     () => `There is no building at ${hex.toHash()}`,
   );
-  const { id } = buildings.get(hex.toHash())!;
-  assert(!buildingDefs[id].indestructible, () => `Building "${idToName(id)}" is indestructible`);
+  const [id] = buildings.get(hex.toHash())!;
+  assert(
+    !buildingDefs[id][buildingDefTupleIndestructible],
+    () => `Building "${buildingDefs[id][buildingDefTupleName]}" is indestructible`,
+  );
   setBuilding(hex, buildingId.blank, true);
   if (isAreaExpandingBuilding(id)) {
     recalculateBorder(hex);
   }
 }
 
-function isAreaExpandingBuilding(id: BuildingId): id is AreaExpandingBuilding {
+function isAreaExpandingBuilding(id: BuildingId): id is AreaExpandingBuildingId {
   return id === buildingId.townCenter || id === buildingId.tower;
 }
 
@@ -112,32 +119,33 @@ function setBuilding(hex: Point, id: BuildingId, overwrite: boolean): void {
     }
     cleanUpBuilding(buildings.get(hash)!);
   }
-  buildings.set(hash, {
+  buildings.set(hash, [
     id,
     hex,
-    drawableHandle: drawablePush(
+    drawablePush(
       drawablePriorityId.buildings,
-      drawBuilding({
-        name: idToName(id),
-        hex,
-      }),
+      drawBuilding(hex, buildingDefs[id][buildingDefTupleName]),
       hex,
     ),
-  });
+  ]);
 }
 
 function recalculateBorder(hex: Point): void {
   const neighborBorderHashes = new Set<string>();
   const neighborInnerHashes = new Set<string>();
-  const add = buildings.get(hex.toHash())!.id !== buildingId.blank;
+  const add = buildings.get(hex.toHash())![buildingTupleId] !== buildingId.blank;
 
   for (const farNeighborHex of hexRange(hex, areaExpandRadius * 2)) {
     const building = buildings.get(farNeighborHex.toHash());
-    if (building && isAreaExpandingBuilding(building.id)) {
-      for (const neighborHex of hexRange(building.hex, areaExpandRadius, areaExpandRadius)) {
+    if (building && isAreaExpandingBuilding(building[buildingTupleId])) {
+      for (const neighborHex of hexRange(
+        building[buildingTupleHex],
+        areaExpandRadius,
+        areaExpandRadius,
+      )) {
         neighborBorderHashes.add(neighborHex.toHash());
       }
-      for (const neighborHex of hexRange(building.hex, areaExpandRadius - 1)) {
+      for (const neighborHex of hexRange(building[buildingTupleHex], areaExpandRadius - 1)) {
         neighborInnerHashes.add(neighborHex.toHash());
       }
     }
@@ -182,10 +190,10 @@ function recalculateBorder(hex: Point): void {
   }
 }
 
-function cleanUpBuilding(building: BuildingInfo): void {
-  drawableRemove(building.drawableHandle);
-  if (building.cancel) {
-    building.cancel();
+function cleanUpBuilding([, , drawableHandle, cancel]: Building): void {
+  drawableRemove(drawableHandle);
+  if (cancel) {
+    cancel();
   }
 }
 
@@ -194,30 +202,36 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
   if (!buildings.has(hash)) {
     return;
   }
-  const building = buildings.get(hash)!;
-  if (building.cancel) {
+  const [id, , , cancel] = buildings.get(hash)!;
+  if (cancel) {
     return [['cancel', (): void => actionCancel(hex)]];
-  } else if (building.id === buildingId.blank) {
+  } else if (id === buildingId.blank) {
     return [
       [
         'build',
         [
           [
-            idToName(buildingId.lumberjackHut),
+            buildingDefs[buildingId.lumberjackHut][buildingDefTupleName],
             (): void => actionBuild(hex, buildingId.lumberjackHut),
           ],
-          [idToName(buildingId.tower), (): void => actionBuild(hex, buildingId.tower)],
+          [
+            buildingDefs[buildingId.tower][buildingDefTupleName],
+            (): void => actionBuild(hex, buildingId.tower),
+          ],
         ],
       ],
     ];
-  } else if (!buildingDefs[building.id].indestructible) {
+  } else if (!buildingDefs[id][buildingDefTupleIndestructible]) {
     return [['destroy', (): void => actionDestroy(hex)]];
   }
 }
 
 function actionBuild(hex: Point, id: BuildingId): void {
-  const { requirements } = buildingDefs[id];
-  assert(requirements, () => `Building "${idToName(id)}" cannot be built`);
+  const [, requirements] = buildingDefs[id];
+  assert(
+    requirements,
+    () => `Building "${buildingDefs[id][buildingDefTupleName]}" cannot be built`,
+  );
   const missingResourceInfo = getMissingResourceInfo(requirements);
   if (missingResourceInfo) {
     toastAdd(missingResourceInfo);
@@ -229,27 +243,30 @@ function actionBuild(hex: Point, id: BuildingId): void {
     () => `There is no building at ${hex.toHash()}`,
   );
   const building = buildings.get(hex.toHash())!;
-  assert(building.id === buildingId.blank, 'New buildings can only be built on blank hexes');
-  assert(!building.cancel, 'Cannot build on the same hex as another building in progress');
+  assert(
+    building[buildingTupleId] === buildingId.blank,
+    'New buildings can only be built on blank hexes',
+  );
+  assert(
+    !building[buildingTupleCancel],
+    'Cannot build on the same hex as another building in progress',
+  );
 
   const [updateProgress, destroyProgress] = progressAdd(hex);
-  const eventHandle = eventQueuePush({
-    run: (currentFrame, totalFrames) => {
-      if (currentFrame === totalFrames) {
-        destroyProgress();
-        addBuilding(hex, id);
-      } else {
-        updateProgress(currentFrame / totalFrames);
-      }
-    },
-    duration: requirements[1],
-  });
+  const eventHandle = eventQueuePush((currentFrame, totalFrames) => {
+    if (currentFrame === totalFrames) {
+      destroyProgress();
+      addBuilding(hex, id);
+    } else {
+      updateProgress(currentFrame / totalFrames);
+    }
+  }, requirements[timedResourcesTupleTime]);
 
-  building.cancel = (): void => {
+  building[buildingTupleCancel] = (): void => {
     // TODO: Restore resources
     destroyProgress();
     eventQueueRemove(eventHandle);
-    building.cancel = undefined;
+    building[buildingTupleCancel] = undefined;
   };
 
   deduceResources(requirements);
@@ -266,13 +283,11 @@ function actionCancel(hex: Point): void {
     () => `There is no building at ${hex.toHash()}`,
   );
   const building = buildings.get(hex.toHash())!;
-  // The !! "operator" is used because it allows TS to understand that
-  // building.cancel is a function without calling it
-  assert(!!building.cancel, 'The cancel function should be present');
-  building.cancel();
+  assert(() => building[buildingTupleCancel], 'The cancel function should be present');
+  building[buildingTupleCancel]!();
 }
 
-function drawBuilding({ name, hex }: { name: string; hex: Point }) {
+function drawBuilding(hex: Point, name: string) {
   return (context: CanvasRenderingContext2D): void => {
     const relativeMid = hex.toCanvas();
 
@@ -321,8 +336,4 @@ function drawBorder(context: CanvasRenderingContext2D): void {
 
 function animateBorder(currentFrame: number): void {
   borderLineDashOffset = (currentFrame * dashSpeed) % (dashLength + dashSpace);
-}
-
-function idToName(id: BuildingId): string {
-  return buildingDefs[id].name;
 }

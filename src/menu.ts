@@ -109,11 +109,11 @@ export function menuTryClickOption(mouseRelative: Point): boolean {
   return false;
 }
 
-function isInOption({ x, y }: Point, index: number): boolean {
+function isInOption(mouseRelative: Point, index: number): boolean {
   return (
-    x >= menuBoundingRect.left &&
-    x < menuBoundingRect.left + optionWidth &&
-    y >= menuBoundingRect.top + index * optionHeight &&
-    y < menuBoundingRect.top + (index + 1) * optionHeight
+    mouseRelative.x >= menuBoundingRect.left &&
+    mouseRelative.x < menuBoundingRect.left + optionWidth &&
+    mouseRelative.y >= menuBoundingRect.top + index * optionHeight &&
+    mouseRelative.y < menuBoundingRect.top + (index + 1) * optionHeight
   );
 }

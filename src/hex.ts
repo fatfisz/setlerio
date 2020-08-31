@@ -10,16 +10,16 @@ export class Point {
     this.y = y;
   }
 
-  add({ x, y }: { x: number; y: number }): Point {
-    return new Point(this.x + x, this.y + y);
+  add(point: Point): Point {
+    return new Point(this.x + point.x, this.y + point.y);
   }
 
   mul(factor: number): Point {
     return new Point(this.x * factor, this.y * factor);
   }
 
-  sub({ x, y }: { x: number; y: number }): Point {
-    return new Point(this.x - x, this.y - y);
+  sub(point: Point): Point {
+    return new Point(this.x - point.x, this.y - point.y);
   }
 
   toHex(): Point {
@@ -40,12 +40,12 @@ export class Point {
     return new Point(Math.round(this.x), Math.round(this.y));
   }
 
-  equal(hex: { x: number; y: number } | undefined): boolean {
+  equal(hex: Point | undefined): boolean {
     return Boolean(hex && this.x === hex.x && this.y === hex.y);
   }
 
-  distance({ x, y }: { x: number; y: number }): number {
-    return ((this.x - x) ** 2 + (this.y - y) ** 2) ** 0.5;
+  distance(point: Point): number {
+    return ((this.x - point.x) ** 2 + (this.y - point.y) ** 2) ** 0.5;
   }
 
   toArray(): [x: number, y: number] {
@@ -118,9 +118,9 @@ function hexHalfSequenceIterator(radius: number): number[] {
 
 export const neighborHexes = hexRange(new Point(0, 0), 1);
 
-export function isInHex({ x, y }: { x: number; y: number }): boolean {
-  const absX = Math.abs(x);
-  const absY = Math.abs(y);
+export function isInHex(point: Point): boolean {
+  const absX = Math.abs(point.x);
+  const absY = Math.abs(point.y);
   return (
     absY <= hexHeight / 2 &&
     (absX <= hexBaseWidth / 2 ||

@@ -90,18 +90,11 @@ export function terrainInit(): void {
 
   for (const [hash, terrain] of hashToTerrain.entries()) {
     const hex = fromHash(hash);
-    drawablePush(
-      drawablePriorityId.terrain,
-      drawTerrain({
-        terrain,
-        hex,
-      }),
-      hex,
-    );
+    drawablePush(drawablePriorityId.terrain, drawTerrain(hex, terrain), hex);
   }
 }
 
-function drawTerrain({ terrain, hex }: { terrain: TerrainId; hex: Point }) {
+function drawTerrain(hex: Point, terrain: TerrainId) {
   return (context: CanvasRenderingContext2D): void => {
     const relativeMid = hex.toCanvas();
 

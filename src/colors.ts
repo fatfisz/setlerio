@@ -1,4 +1,4 @@
-export type ColorChannels = [number, number, number];
+export type ColorChannels = [r: number, g: number, b: number];
 
 export function putColor(data: Uint8ClampedArray, index: number, [r, g, b]: ColorChannels): void {
   data[index] = r;

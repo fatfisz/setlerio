@@ -103,13 +103,13 @@ function mouseInit(): void {
     event.preventDefault();
   });
 
-  canvas.addEventListener('wheel', ({ deltaY }) => {
+  canvas.addEventListener('wheel', (event) => {
     if (menuHex) {
       menuClose();
       menuHex = undefined;
     }
     if (mouse) {
-      zoom = Math.max(minZoom, Math.min(maxZoom, zoom - Math.sign(deltaY) * zoomStep));
+      zoom = Math.max(minZoom, Math.min(maxZoom, zoom - Math.sign(event.deltaY) * zoomStep));
       camera = cameraFromCanvas(mouse.relative, mouse.canvas);
     }
   });
@@ -173,11 +173,11 @@ function mouseInit(): void {
   });
 }
 
-function fromEvent({ clientX, clientY }: { clientX: number; clientY: number }): Point {
-  const { left, top, width, height } = canvas.getBoundingClientRect();
+function fromEvent(event: { clientX: number; clientY: number }): Point {
+  const rect = canvas.getBoundingClientRect();
   return new Point(
-    (clientX - left) * (displayWidth / width),
-    (clientY - top) * (displayHeight / height),
+    (event.clientX - rect.left) * (displayWidth / rect.width),
+    (event.clientY - rect.top) * (displayHeight / rect.height),
   );
 }
 
@@ -248,10 +248,10 @@ function clearCanvas(): void {
 }
 
 function isHexWithinRange(hex1: Point, hex2: Point): boolean {
-  const { x, y } = hex1.sub(hex2).toCanvas();
+  const hexDiff = hex1.sub(hex2).toCanvas();
   return (
-    Math.abs(x) <= (displayWidth + hexWidth) / (2 * minZoom) &&
-    Math.abs(y) <= (displayHeight + hexHeight) / (2 * minZoom)
+    Math.abs(hexDiff.x) <= (displayWidth + hexWidth) / (2 * minZoom) &&
+    Math.abs(hexDiff.y) <= (displayHeight + hexHeight) / (2 * minZoom)
   );
 }
 

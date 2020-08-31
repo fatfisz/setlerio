@@ -9,6 +9,8 @@ type ResourceName = 'food' | 'wood' | 'stone' | 'iron' | 'gold';
 
 export type TimedResources = [items: [name: ResourceName, quantity: number][], time: number];
 
+export const timedResourcesTupleTime = 1;
+
 const resources: Record<ResourceName, number> = {
   food: 100,
   wood: 100,

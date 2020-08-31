@@ -3,18 +3,12 @@ import { getNumberOfFrames, globalFrame } from 'frame';
 
 export type Run = (currentFrame: number, totalFrames: number) => void;
 
-interface GameEventOptions {
-  run: Run;
-  when?: number;
-  duration?: number;
-}
-
 class GameEvent {
   frame: number;
   totalFrames: number;
   run: Run;
 
-  constructor({ run, when = 0, duration = 0 }: GameEventOptions) {
+  constructor(run: Run, duration: number, when: number) {
     assert(when >= 0, "Don't push an event into the past");
     assert(duration >= 0, 'The event has to last at least for one frame');
     this.run = run;
@@ -27,9 +21,9 @@ let lastHandle = 0;
 
 const events = new Map<number, GameEvent>();
 
-export function eventQueuePush(eventOptions: GameEventOptions): number {
+export function eventQueuePush(run: Run, duration = 0, when = 0): number {
   lastHandle += 1;
-  events.set(lastHandle, new GameEvent(eventOptions));
+  events.set(lastHandle, new GameEvent(run, duration, when));
   return lastHandle;
 }
 

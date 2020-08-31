@@ -56,7 +56,7 @@ function drawProgressBar(hex: Point, progressState: ProgressState) {
 
     context.fillStyle = 'white';
     context.fillRect(
-      ...relativeMid.add({ x: -barWidth / 2, y: -barHeight / 2 }).toArray(),
+      ...relativeMid.add(barVertices[0]).toArray(),
       barWidth * progressState.progress,
       barHeight,
     );
