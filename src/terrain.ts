@@ -11,6 +11,8 @@ const terrain = {
 
 type Terrain = typeof terrain[keyof typeof terrain];
 
+const terrainColor = ['springgreen', 'forestgreen', 'sienna', 'gold'] as const;
+
 const size = 28;
 const meadowThreshold = 0.4;
 const forestThreshold = 0.85;
@@ -97,13 +99,6 @@ export function terrainInit(): void {
     );
   }
 }
-
-const terrainColor: Record<Terrain, string> = {
-  [terrain.meadow]: 'springgreen',
-  [terrain.forest]: 'forestgreen',
-  [terrain.mountains]: 'sienna',
-  [terrain.desert]: 'gold',
-};
 
 function drawTerrain({ terrain, hex }: { terrain: Terrain; hex: Point }) {
   return (context: CanvasRenderingContext2D): void => {
