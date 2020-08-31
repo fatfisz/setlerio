@@ -6,6 +6,7 @@ import { eventQueuePush } from 'eventQueue';
 import { fps } from 'frame';
 import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
+import { progressAdd } from 'progressBar';
 import { deduceResources, getMissingResourceInfo, TimedResources } from 'resources';
 import { drawText } from 'text';
 import { toastAdd } from 'toast';
@@ -24,6 +25,7 @@ type AreaExpandingBuilding = typeof buildingId.townCenter | typeof buildingId.to
 interface BuildingInfo {
   id: BuildingId;
   hex: Point;
+  inProgress: boolean;
   drawableHandle: number;
 }
 
@@ -108,11 +110,12 @@ function setBuilding(hex: Point, id: BuildingId, overwrite: boolean): void {
     if (!overwrite) {
       return;
     }
-    drawableRemove(buildings.get(hash)!.drawableHandle);
+    cleanUpBuildingHandles(buildings.get(hash)!);
   }
   buildings.set(hash, {
     id,
     hex,
+    inProgress: false,
     drawableHandle: drawablePush(
       drawablePriorityId.buildings,
       drawBuilding({
@@ -171,7 +174,7 @@ function recalculateBorder(hex: Point): void {
           () => buildings.has(hash),
           "The building has to exist since it's a neighbor of a deleted hex",
         );
-        drawableRemove(buildings.get(hash)!.drawableHandle);
+        cleanUpBuildingHandles(buildings.get(hash)!);
         buildings.delete(hash);
         buildingsToDestroy.add(hash);
         borderHashes.delete(hash);
@@ -180,40 +183,72 @@ function recalculateBorder(hex: Point): void {
   }
 }
 
+function cleanUpBuildingHandles(building: BuildingInfo): void {
+  drawableRemove(building.drawableHandle);
+}
+
 export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
   const hash = hex.toHash();
   if (!buildings.has(hash)) {
     return;
   }
   const building = buildings.get(hash)!;
-  if (building.id === buildingId.blank) {
+  if (building.inProgress) {
+    // TODO: allow canceling
+    return;
+  } else if (building.id === buildingId.blank) {
     return [
       [
         'build',
         [
-          [idToName(buildingId.lumberjackHut), (): void => build(hex, buildingId.lumberjackHut)],
-          [idToName(buildingId.tower), (): void => build(hex, buildingId.tower)],
+          [
+            idToName(buildingId.lumberjackHut),
+            (): void => actionBuild(hex, buildingId.lumberjackHut),
+          ],
+          [idToName(buildingId.tower), (): void => actionBuild(hex, buildingId.tower)],
         ],
       ],
     ];
   } else if (!buildingDefs[building.id].indestructible) {
-    return [['destroy', (): void => destroy(hex)]];
+    return [['destroy', (): void => actionDestroy(hex)]];
   }
 }
 
-function build(hex: Point, id: BuildingId): void {
+function actionBuild(hex: Point, id: BuildingId): void {
   const { requirements } = buildingDefs[id];
   assert(requirements, () => `Building "${idToName(id)}" cannot be built`);
   const missingResourceInfo = getMissingResourceInfo(requirements);
   if (missingResourceInfo) {
     toastAdd(missingResourceInfo);
-  } else {
-    addBuilding(hex, id);
-    deduceResources(requirements);
+    return;
   }
+
+  assert(
+    () => buildings.has(hex.toHash()),
+    () => `There is no building at ${hex.toHash()}`,
+  );
+  const building = buildings.get(hex.toHash())!;
+  assert(building.id === buildingId.blank, 'New buildings can only be built on blank hexes');
+  assert(!building.inProgress, 'Cannot build on the same hex as another building in progress');
+  building.inProgress = true;
+  deduceResources(requirements);
+
+  // Allow canceling if the building gets destroyed in the meantime
+  const [update, destroy] = progressAdd(hex);
+  eventQueuePush({
+    run: (currentFrame, totalFrames) => {
+      if (currentFrame === totalFrames) {
+        destroy();
+        addBuilding(hex, id);
+      } else {
+        update(currentFrame / totalFrames);
+      }
+    },
+    duration: requirements[1],
+  });
 }
 
-function destroy(hex: Point): void {
+function actionDestroy(hex: Point): void {
   // TODO: restore some resources
   removeBuilding(hex);
 }
