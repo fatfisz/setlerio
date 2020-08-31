@@ -1,4 +1,5 @@
 import { ColorChannels, putColor } from 'colors';
+import { defaultPixelSize } from 'config';
 import { assert } from 'devAssert';
 import { getCanvas } from 'getCanvas';
 import { useImageCache } from 'imageCache';
@@ -17,7 +18,7 @@ export function drawText(
   y: number,
   horizontalMod = 0,
   verticalMod = 0,
-  scale = 3,
+  scale = defaultPixelSize,
 ): void {
   const scaledImage = useImageCache([text, color, scale], () => {
     const textImage = getTextImage(text, color);
