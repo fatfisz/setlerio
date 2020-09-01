@@ -23,6 +23,7 @@
     "dat.gui": "0.7.7",
     "eslint": "7.7.0",
     "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-import": "2.22.0",
     "eslint-plugin-prettier": "3.1.4",
     "html-webpack-plugin": "4.3.0",
     "prettier": "2.1.1",
