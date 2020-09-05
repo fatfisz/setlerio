@@ -1,6 +1,6 @@
 import { drawPathFromPoints } from 'context';
 import { assert, assertRanOnce } from 'devAssert';
-import { getHighlightedHex } from 'display';
+import { closeMenuIfOpenAt, getHighlightedHex } from 'display';
 import { drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
 import { eventQueuePush, eventQueueRemove } from 'eventQueue';
 import { fps } from 'frame';
@@ -256,6 +256,7 @@ function actionBuild(hex: Point, id: BuildingId): void {
   const [updateProgress, destroyProgress] = progressAdd(hex);
   const eventHandle = eventQueuePush((currentFrame, totalFrames) => {
     if (currentFrame === totalFrames) {
+      closeMenuIfOpenAt(hex);
       destroyProgress();
       building[buildingTupleCancel] = undefined;
       addBuilding(hex, id);

@@ -265,3 +265,10 @@ export function useResetTransform(draw: () => void): void {
   draw();
   context.restore();
 }
+
+export function closeMenuIfOpenAt(hex: Point): void {
+  if (menuIsOpen() && hex.equal(menuHex)) {
+    menuClose();
+    menuHex = undefined;
+  }
+}
