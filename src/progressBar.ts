@@ -1,3 +1,4 @@
+import { colors } from 'colors';
 import { defaultPixelSize } from 'config';
 import { drawPathFromPoints } from 'context';
 import { drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
@@ -47,20 +48,18 @@ function drawProgressBar(hex: Point, progressState: ProgressState) {
       context,
       barVertices.map((vertex) => vertex.add(relativeMid)),
     );
-    context.fillStyle = '#fff3';
     context.lineWidth = defaultPixelSize;
     context.lineJoin = 'miter';
-    context.strokeStyle = 'white';
-    context.fill();
+    context.strokeStyle = colors.white;
     context.stroke();
 
-    context.fillStyle = 'white';
+    context.fillStyle = colors.white;
     context.fillRect(
       ...relativeMid.add(barVertices[0]).toArray(),
       barWidth * progressState.progress,
       barHeight,
     );
 
-    drawText(context, text, [0, 0, 0], ...relativeMid.toArray(), 0.5, 0.5);
+    drawText(context, text, colors.black, ...relativeMid.toArray(), 0.5, 0.5);
   };
 }

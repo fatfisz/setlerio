@@ -1,3 +1,4 @@
+import { colors } from 'colors';
 import { displayHeight, displayWidth } from 'config';
 import { useResetTransform } from 'display';
 import { drawableNoopHandle, drawablePriorityId, drawablePush, drawableRemove } from 'drawables';
@@ -59,8 +60,7 @@ export function menuOpen(options: MenuOption[], mouseRelative = lastMouseRelativ
 
 function drawMenu(context: CanvasRenderingContext2D): void {
   useResetTransform(() => {
-    context.fillStyle = 'white';
-
+    context.fillStyle = colors.white;
     context.fillRect(
       menuBoundingRect.left,
       menuBoundingRect.top,
@@ -72,7 +72,7 @@ function drawMenu(context: CanvasRenderingContext2D): void {
       drawText(
         context,
         text,
-        [0, 0, 0],
+        colors.black,
         menuBoundingRect.left + padding,
         menuBoundingRect.top + (index + 0.5) * optionHeight,
         0,
@@ -82,7 +82,7 @@ function drawMenu(context: CanvasRenderingContext2D): void {
         drawText(
           context,
           '>',
-          [0, 0, 0],
+          colors.black,
           menuBoundingRect.left + optionWidth - padding,
           menuBoundingRect.top + (index + 0.5) * optionHeight,
           1,

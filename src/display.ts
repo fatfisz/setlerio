@@ -1,4 +1,5 @@
 import { getBuildingOptions } from 'buildings';
+import { colors } from 'colors';
 import {
   displayHeight,
   displayWidth,
@@ -23,7 +24,7 @@ interface Mouse {
 }
 
 const [canvas, context] = getCanvas(displayWidth, displayHeight, true);
-canvas.style.background = '#D6EAF8';
+canvas.style.background = colors.sea;
 
 let camera = new Point(0, 0);
 let zoom = 1;

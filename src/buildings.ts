@@ -1,3 +1,4 @@
+import { colors } from 'colors';
 import { drawPathFromPoints } from 'context';
 import { assert, assertRanOnce } from 'devAssert';
 import { closeMenuIfOpenAt, getHighlightedHex } from 'display';
@@ -328,12 +329,12 @@ function drawBuilding(hex: Point, name: string) {
         hexVertices.map((vertex) => vertex.mul(zoomFactor).add(relativeMid)),
       );
       context.lineWidth = 5;
-      context.strokeStyle = '#fff';
+      context.strokeStyle = colors.white;
       context.stroke();
     }
 
     if (name) {
-      drawText(context, name, [0, 0, 0], ...relativeMid.toArray(), 0.5, 0.5);
+      drawText(context, name, colors.black, ...relativeMid.toArray(), 0.5, 0.5);
     }
   };
 }
@@ -363,8 +364,8 @@ function drawBorder(context: CanvasRenderingContext2D): void {
     }
   }
   context.lineJoin = 'round';
-  context.lineWidth = 4;
-  context.strokeStyle = 'white';
+  context.lineWidth = 4.5;
+  context.strokeStyle = colors.white;
   context.lineDashOffset = borderLineDashOffset;
   context.setLineDash([dashLength, dashSpace]);
   context.stroke();

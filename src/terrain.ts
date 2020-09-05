@@ -1,4 +1,5 @@
 import { buildings } from 'buildings';
+import { colors, darker } from 'colors';
 import { drawPathFromPoints } from 'context';
 import { assertRanOnce } from 'devAssert';
 import { drawablePriorityId, drawablePush } from 'drawables';
@@ -13,7 +14,7 @@ const terrainId = {
 
 type TerrainId = typeof terrainId[keyof typeof terrainId];
 
-const terrainColor = ['springgreen', 'forestgreen', 'sienna', 'gold'] as const;
+const terrainColor = [colors.meadow, colors.forest, colors.mountains, colors.desert] as const;
 
 const size = 28;
 const meadowThreshold = 0.4;
@@ -103,15 +104,13 @@ function drawTerrain(hex: Point, terrain: TerrainId) {
       context,
       hexVertices.map((vertex) => vertex.add(relativeMid)),
     );
-    context.fillStyle = terrainColor[terrain];
+    context.fillStyle = buildings.has(hex.toHash())
+      ? terrainColor[terrain]
+      : darker[terrainColor[terrain]];
     context.lineJoin = 'round';
     context.lineWidth = 0.5;
-    context.strokeStyle = 'black';
+    context.strokeStyle = colors.black;
     context.fill();
     context.stroke();
-    if (!buildings.has(hex.toHash())) {
-      context.fillStyle = '#0008';
-      context.fill();
-    }
   };
 }

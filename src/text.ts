@@ -1,4 +1,4 @@
-import { ColorChannels, putColor } from 'colors';
+import { ChanneledColor, putColor } from 'colors';
 import { defaultPixelSize } from 'config';
 import { assert } from 'devAssert';
 import { getCanvas } from 'getCanvas';
@@ -13,7 +13,7 @@ const lineSpacing = 3;
 export function drawText(
   context: CanvasRenderingContext2D,
   text: string,
-  color: ColorChannels,
+  color: ChanneledColor,
   x: number,
   y: number,
   horizontalMod = 0,
@@ -33,7 +33,7 @@ export function drawText(
   );
 }
 
-function getTextImage(text: string, color: ColorChannels): HTMLCanvasElement {
+function getTextImage(text: string, color: ChanneledColor): HTMLCanvasElement {
   return useImageCache(['text', text, color], () => {
     if (process.env.NODE_ENV !== 'production') {
       for (const letter of text) {
@@ -65,7 +65,7 @@ function getTextImage(text: string, color: ColorChannels): HTMLCanvasElement {
 
 function drawLetter(
   imageData: ImageData,
-  color: ColorChannels,
+  color: ChanneledColor,
   letterX: number,
   letterY: number,
   char: string,

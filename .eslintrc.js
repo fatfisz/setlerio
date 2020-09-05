@@ -6,6 +6,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['import', 'prettier', '@typescript-eslint'],
   rules: {
+    'no-prototype-builtins': 'off',
     'no-sparse-arrays': 'off',
     'no-useless-rename': 'warn',
     'object-shorthand': 'warn',

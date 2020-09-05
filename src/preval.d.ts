@@ -1,3 +1,3 @@
 declare const preval: {
-  require<T>(path: string): T;
+  require<Result, Arguments extends any[] = any[]>(path: string, ...args: Arguments): Result;
 };

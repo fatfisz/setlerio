@@ -1,3 +1,4 @@
+import { colors } from 'colors';
 import { displayHeight, displayWidth } from 'config';
 import { assertRanOnce } from 'devAssert';
 import { useResetTransform } from 'display';
@@ -72,17 +73,22 @@ function drawToasts(context: CanvasRenderingContext2D): void {
   useResetTransform(() => {
     let totalOffset = 0;
 
-    context.fillStyle = 'white';
-
+    context.fillStyle = colors.white;
     for (const toast of [...toasts].reverse()) {
       const [text, offset, opacity] = toast;
       totalOffset += 1 + offset;
-      context.globalAlpha = opacity;
-
       const top = displayHeight - totalOffset * (padding + toastHeight);
-
+      context.globalAlpha = opacity;
       context.fillRect(displayWidth - padding - toastWidth, top, toastWidth, toastHeight);
-      drawText(context, text, [0, 0, 0], displayWidth - toastWidth, top + toastHeight / 2, 0, 0.5);
+      drawText(
+        context,
+        text,
+        colors.black,
+        displayWidth - toastWidth,
+        top + toastHeight / 2,
+        0,
+        0.5,
+      );
     }
   });
 }

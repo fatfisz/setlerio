@@ -1,3 +1,4 @@
+import { colors } from 'colors';
 import { displayWidth } from 'config';
 import { assert, assertRanOnce } from 'devAssert';
 import { useResetTransform } from 'display';
@@ -60,10 +61,9 @@ export function restoreResources([items]: TimedResources, mod = 1): void {
 
 function drawResources(context: CanvasRenderingContext2D): void {
   useResetTransform(() => {
-    context.fillStyle = 'white';
-
+    context.fillStyle = colors.white;
     context.fillRect(0, 0, displayWidth, 48);
-    drawText(context, getResourcesText(), [0, 0, 0], 24, 24, 0, 0.5);
+    drawText(context, getResourcesText(), colors.black, 24, 24, 0, 0.5);
   });
 }
 
