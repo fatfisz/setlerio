@@ -69,13 +69,14 @@ const buildingDefTupleName = 0;
 const buildingDefTupleIndestructible = 3;
 
 const areaExpandRadius = 2;
-const buildings = new Map<string, Building>();
+export const buildings = new Map<string, Building>();
 const buildingsToDestroy = new Set<string>();
 const borderHashes = new Set<string>();
 
 export function buildingsInit(): void {
   assertRanOnce('buildingsInit');
 
+  eventQueuePush(animateFocus, Infinity);
   drawablePush(drawablePriorityId.border, drawBorder);
   eventQueuePush(animateBorder, Infinity);
 
@@ -227,6 +228,15 @@ export function getBuildingOptions(hex: Point): MenuOption[] | undefined {
   }
 }
 
+export function hasBuildingOptions(hex: Point): boolean {
+  assert(
+    () => buildings.has(hex.toHash()),
+    'Building options check can only be performed on existing buildings',
+  );
+  const [id] = buildings.get(hex.toHash())!;
+  return id === buildingId.blank || !buildingDefs[id][buildingDefTupleIndestructible];
+}
+
 function actionBuild(hex: Point, id: BuildingId): void {
   const [, requirements] = buildingDefs[id];
   assert(
@@ -300,17 +310,26 @@ function actionCancel(hex: Point): void {
   cancel!();
 }
 
+const focusMinZoom = 1;
+const focusMaxZoom = 1.03;
+const focusPeriod = 5;
+const focusSpeed = focusPeriod / fps / 0.8;
+let focusOffset = 0;
+
 function drawBuilding(hex: Point, name: string) {
   return (context: CanvasRenderingContext2D): void => {
     const relativeMid = hex.toCanvas();
 
-    if (hex.equal(getHighlightedHex())) {
+    if (hex.equal(getHighlightedHex()) && hasBuildingOptions(hex)) {
+      const zoomAlpha = Math.abs(1 - (2 * focusOffset) / focusPeriod) ** 2;
+      const zoomFactor = focusMinZoom * zoomAlpha + focusMaxZoom * (1 - zoomAlpha);
       drawPathFromPoints(
         context,
-        hexVertices.map((vertex) => vertex.add(relativeMid)),
+        hexVertices.map((vertex) => vertex.mul(zoomFactor).add(relativeMid)),
       );
-      context.fillStyle = '#fff9';
-      context.fill();
+      context.lineWidth = 5;
+      context.strokeStyle = '#fff';
+      context.stroke();
     }
 
     if (name) {
@@ -319,20 +338,27 @@ function drawBuilding(hex: Point, name: string) {
   };
 }
 
+function animateFocus(currentFrame: number): void {
+  focusOffset = (currentFrame * focusSpeed) % focusPeriod;
+}
+
 const dashLength = 6;
 const dashSpace = 4;
-const dashSpeed = (dashLength + dashSpace) / fps / 0.8;
+const dashPeriod = dashLength + dashSpace;
+const dashSpeed = dashPeriod / fps / 0.8;
 let borderLineDashOffset = 0;
 
 function drawBorder(context: CanvasRenderingContext2D): void {
   context.beginPath();
   for (const hash of borderHashes) {
     const hex = fromHash(hash);
-    const relativeMid = hex.toCanvas();
-    for (let index = 0; index < 6; index += 1) {
-      if (!buildings.has(hex.add(neighborHexes[index]).toHash())) {
-        context.moveTo(...relativeMid.add(hexVertices[index]).toArray());
-        context.lineTo(...relativeMid.add(hexVertices[(index + 1) % 6]).toArray());
+    if (!hex.equal(getHighlightedHex())) {
+      const relativeMid = hex.toCanvas();
+      for (let index = 0; index < 6; index += 1) {
+        if (!buildings.has(hex.add(neighborHexes[index]).toHash())) {
+          context.moveTo(...relativeMid.add(hexVertices[index]).toArray());
+          context.lineTo(...relativeMid.add(hexVertices[(index + 1) % 6]).toArray());
+        }
       }
     }
   }
@@ -348,5 +374,5 @@ function drawBorder(context: CanvasRenderingContext2D): void {
 }
 
 function animateBorder(currentFrame: number): void {
-  borderLineDashOffset = (currentFrame * dashSpeed) % (dashLength + dashSpace);
+  borderLineDashOffset = (currentFrame * dashSpeed) % dashPeriod;
 }

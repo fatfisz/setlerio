@@ -1,3 +1,4 @@
+import { buildings } from 'buildings';
 import { drawPathFromPoints } from 'context';
 import { assertRanOnce } from 'devAssert';
 import { drawablePriorityId, drawablePush } from 'drawables';
@@ -108,5 +109,9 @@ function drawTerrain(hex: Point, terrain: TerrainId) {
     context.strokeStyle = 'black';
     context.fill();
     context.stroke();
+    if (!buildings.has(hex.toHash())) {
+      context.fillStyle = '#0008';
+      context.fill();
+    }
   };
 }
