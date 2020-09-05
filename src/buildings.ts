@@ -10,6 +10,7 @@ import { progressAdd } from 'progressBar';
 import {
   deduceResources,
   getMissingResourceInfo,
+  restoreResources,
   TimedResources,
   timedResourcesTupleTime,
 } from 'resources';
@@ -256,6 +257,7 @@ function actionBuild(hex: Point, id: BuildingId): void {
   const eventHandle = eventQueuePush((currentFrame, totalFrames) => {
     if (currentFrame === totalFrames) {
       destroyProgress();
+      building[buildingTupleCancel] = undefined;
       addBuilding(hex, id);
     } else {
       updateProgress(currentFrame / totalFrames);
@@ -263,7 +265,7 @@ function actionBuild(hex: Point, id: BuildingId): void {
   }, requirements[timedResourcesTupleTime]);
 
   building[buildingTupleCancel] = (): void => {
-    // TODO: Restore resources
+    restoreResources(requirements);
     destroyProgress();
     eventQueueRemove(eventHandle);
     building[buildingTupleCancel] = undefined;
@@ -273,7 +275,17 @@ function actionBuild(hex: Point, id: BuildingId): void {
 }
 
 function actionDestroy(hex: Point): void {
-  // TODO: restore some resources
+  assert(
+    () => buildings.has(hex.toHash()),
+    () => `There is no building at ${hex.toHash()}`,
+  );
+  const [id] = buildings.get(hex.toHash())!;
+  const [, requirements] = buildingDefs[id];
+  assert(
+    requirements,
+    () => `Building "${buildingDefs[id][buildingDefTupleName]}" could not have been built`,
+  );
+  restoreResources(requirements, 0.5);
   removeBuilding(hex);
 }
 
@@ -282,9 +294,9 @@ function actionCancel(hex: Point): void {
     () => buildings.has(hex.toHash()),
     () => `There is no building at ${hex.toHash()}`,
   );
-  const building = buildings.get(hex.toHash())!;
-  assert(() => building[buildingTupleCancel], 'The cancel function should be present');
-  building[buildingTupleCancel]!();
+  const [, , , cancel] = buildings.get(hex.toHash())!;
+  assert(() => cancel, 'The cancel function should be present');
+  cancel!();
 }
 
 function drawBuilding(hex: Point, name: string) {

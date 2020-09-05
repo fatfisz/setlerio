@@ -52,6 +52,12 @@ export function deduceResources([items]: TimedResources): void {
   }
 }
 
+export function restoreResources([items]: TimedResources, mod = 1): void {
+  for (const [name, count] of items) {
+    resources[name] += Math.ceil(count * mod);
+  }
+}
+
 function drawResources(context: CanvasRenderingContext2D): void {
   useResetTransform(() => {
     context.fillStyle = 'white';
