@@ -108,7 +108,7 @@ function drawTerrain(hex: Point, terrain: TerrainId) {
       ? terrainColor[terrain]
       : darker[terrainColor[terrain]];
     context.lineJoin = 'round';
-    context.lineWidth = 0.5;
+    context.lineWidth = 0.75;
     context.strokeStyle = colors.black;
     context.fill();
     context.stroke();
