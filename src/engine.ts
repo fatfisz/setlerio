@@ -2,6 +2,7 @@ import { buildingsInit } from 'buildings';
 import { displayInit, displayUpdate } from 'display';
 import { eventQueueRun } from 'eventQueue';
 import { updateGui, useGui } from 'gui';
+import { pathFinderInit } from 'pathFinder';
 import { resourcesInit } from 'resources';
 import { terrainInit } from 'terrain';
 import { toastInit } from 'toast';
@@ -30,6 +31,7 @@ export function engineInit(): void {
   terrainInit();
   displayInit();
   buildingsInit();
+  pathFinderInit();
 }
 
 export function engineTick(): void {
