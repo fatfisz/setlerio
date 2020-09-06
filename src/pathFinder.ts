@@ -16,7 +16,7 @@ export function pathFinderInit(): void {
     const pathFinder = {
       toggle(): void {
         if (handle === drawableNoopHandle) {
-          handle = drawablePush(drawablePriorityId.toasts, drawPathFinder);
+          handle = drawablePush(drawablePriorityId.border, drawPathFinder);
         } else {
           drawableRemove(handle);
           handle = drawableNoopHandle;

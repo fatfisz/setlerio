@@ -33,7 +33,7 @@ export function resourcesInit(): void {
     folder.add(resources, 'gold', 0, undefined, 1);
   });
 
-  drawablePush(drawablePriorityId.toasts, drawResources);
+  drawablePush(drawablePriorityId.hud, drawResources);
 }
 
 export function getMissingResourceInfo([items]: TimedResources): string | undefined {

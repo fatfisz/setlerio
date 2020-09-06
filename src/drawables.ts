@@ -5,10 +5,10 @@ export const drawablePriorityId = {
   buildings: 1,
   border: 2,
   toasts: 3,
-  menu: 4,
+  hud: 4,
+  menu: 5,
+  last: 6,
 } as const;
-
-export const drawableMaxPriority = 5;
 
 type PriorityId = typeof drawablePriorityId[keyof typeof drawablePriorityId];
 

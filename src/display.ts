@@ -11,7 +11,7 @@ import {
   zoomStep,
 } from 'config';
 import { assert, assertRanOnce } from 'devAssert';
-import { drawableMaxPriority, getDrawables } from 'drawables';
+import { drawablePriorityId, getDrawables } from 'drawables';
 import { getCanvas } from 'getCanvas';
 import { useGui } from 'gui';
 import { isInHex, neighborHexes, Point } from 'hex';
@@ -222,10 +222,11 @@ export function displayUpdate(): void {
     [],
     [],
     [],
+    [],
   ];
   assert(
-    drawGroupedByPriority.length === drawableMaxPriority,
-    `The number of groups should be ${drawableMaxPriority} and not ${drawGroupedByPriority.length}`,
+    drawGroupedByPriority.length === drawablePriorityId.last,
+    `The number of groups should be ${drawablePriorityId.last} and not ${drawGroupedByPriority.length}`,
   );
   const midHex = camera.toHex();
   for (const [priority, draw, hex] of getDrawables()) {
