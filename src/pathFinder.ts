@@ -41,7 +41,7 @@ const fromMap: Record<number, number[]> = {
   6: [0, 1, 2, 3, 4, 5],
 };
 
-export function pathFind(start: Point, predicate: (hex: Point) => boolean): void {
+export function pathFind(start: Point, predicate: (hex: Point) => boolean | void): void {
   const visited = new Set<string>([start.toHash()]);
   const queue = new Set<[Point, number]>([[start, 6]]);
   for (const [hex, from] of queue) {
