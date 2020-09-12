@@ -9,11 +9,12 @@ import { fromHash, hexRange, hexVertices, neighborHexes, Point } from 'hex';
 import { MenuOption } from 'menu';
 import { progressAdd } from 'progressBar';
 import {
-  deduceResources,
-  getMissingResourceInfo,
-  restoreResources,
-  TimedResources,
-  timedResourcesTupleTime,
+  ResourceCount,
+  resourcesDeduce,
+  resourcesGetMissingMessage,
+  resourcesRestore,
+  TimedResourceCount,
+  timedResourceCountTupleTime,
 } from 'resources';
 import { drawText } from 'text';
 import { toastAdd } from 'toast';
@@ -37,33 +38,14 @@ const buildingTupleCancel = 3;
 
 const buildingDefs: [
   name: string,
-  requirements?: TimedResources,
-  production?: TimedResources,
+  requirements?: ResourceCount,
+  production?: TimedResourceCount,
   indestructible?: boolean,
 ][] = [
   ['', , , true],
   ['town center', , , true],
-  [
-    'tower',
-    [
-      [
-        ['wood', 2],
-        ['stone', 3],
-      ],
-      5000,
-    ],
-  ],
-  [
-    "lumberjack's hut",
-    [
-      [
-        ['wood', 2],
-        ['stone', 2],
-      ],
-      5000,
-    ],
-    [[['wood', 1]], 5000],
-  ],
+  ['tower', [0, 2, 3, 0, 0]],
+  ["lumberjack's hut", [0, 2, 2, 0, 0], [5000, 0, 1, 0, 0, 0]],
 ];
 
 const buildingDefTupleName = 0;
@@ -80,11 +62,14 @@ export function buildingsInit(): void {
   eventQueuePush(animateFocus, Infinity);
   drawablePush(drawablePriorityId.border, drawBorder);
   eventQueuePush(animateBorder, Infinity);
+}
 
+export function buildingsReset(): void {
+  buildings.clear();
+  buildingsToDestroy.clear();
+  borderHashes.clear();
   addBuilding(new Point(0, 0), buildingId.townCenter);
-  addBuilding(new Point(2, -2), buildingId.tower);
   addBuilding(new Point(3, -1), buildingId.tower);
-  removeBuilding(new Point(2, -2));
 }
 
 function addBuilding(hex: Point, id: BuildingId): void {
@@ -244,7 +229,7 @@ function actionBuild(hex: Point, id: BuildingId): void {
     requirements,
     () => `Building "${buildingDefs[id][buildingDefTupleName]}" cannot be built`,
   );
-  const missingResourceInfo = getMissingResourceInfo(requirements);
+  const missingResourceInfo = resourcesGetMissingMessage(requirements);
   if (missingResourceInfo) {
     toastAdd(missingResourceInfo);
     return;
@@ -274,16 +259,16 @@ function actionBuild(hex: Point, id: BuildingId): void {
     } else {
       updateProgress(currentFrame / totalFrames);
     }
-  }, requirements[timedResourcesTupleTime]);
+  }, requirements[timedResourceCountTupleTime]);
 
   building[buildingTupleCancel] = (): void => {
-    restoreResources(requirements);
+    resourcesRestore(requirements);
     destroyProgress();
     eventQueueRemove(eventHandle);
     building[buildingTupleCancel] = undefined;
   };
 
-  deduceResources(requirements);
+  resourcesDeduce(requirements);
 }
 
 function actionDestroy(hex: Point): void {
@@ -297,7 +282,7 @@ function actionDestroy(hex: Point): void {
     requirements,
     () => `Building "${buildingDefs[id][buildingDefTupleName]}" could not have been built`,
   );
-  restoreResources(requirements, 0.5);
+  resourcesRestore(requirements, 0.5);
   removeBuilding(hex);
 }
 

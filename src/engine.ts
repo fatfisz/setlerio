@@ -1,9 +1,11 @@
-import { buildingsInit } from 'buildings';
+import { buildingsInit, buildingsReset } from 'buildings';
 import { displayInit, displayUpdate } from 'display';
 import { eventQueueRun } from 'eventQueue';
+import { gostekInit, gostekReset } from 'gostek';
 import { updateGui, useGui } from 'gui';
+import { needReset, needUpdate } from 'need';
 import { pathFinderInit } from 'pathFinder';
-import { resourcesInit } from 'resources';
+import { resourcesInit, resourcesReset } from 'resources';
 import { terrainInit } from 'terrain';
 import { toastInit } from 'toast';
 
@@ -31,11 +33,18 @@ export function engineInit(): void {
   terrainInit();
   displayInit();
   buildingsInit();
+  gostekInit();
   pathFinderInit();
+
+  buildingsReset();
+  gostekReset();
+  needReset();
+  resourcesReset();
 }
 
 export function engineTick(): void {
   eventQueueRun();
+  needUpdate();
   displayUpdate();
   updateGui();
 }
